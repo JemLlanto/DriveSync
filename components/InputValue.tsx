@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { StyleSheet, Text, TextInput } from "react-native";
 
 interface InputValueProps {
-  label: string;
+  label?: string;
   name: string;
   setName: (value: string) => void;
   placeholder: string;

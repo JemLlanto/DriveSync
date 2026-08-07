@@ -1,3 +1,7 @@
+import Button from "@/components/Button";
+import InputValue from "@/components/InputValue";
+import ModalComponent from "@/components/ModalComponent";
+import { formatNumber, formatRelativeDate } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
@@ -7,7 +11,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { ThemeColors, useTheme } from "../../lib/theme";
@@ -15,12 +18,12 @@ import { OdoEntry, useVehicles } from "../../lib/vehicleStore";
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getVehicles, getVehicle, updateOdo, removeVehicle, loading } =
-    useVehicles();
+  const { getVehicle, updateOdo, removeVehicle, loading } = useVehicles();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [editing, setEditing] = useState(false);
   const [newOdo, setNewOdo] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
 
   const vehicle = getVehicle(id);
 
@@ -70,6 +73,7 @@ export default function VehicleDetailScreen() {
     await updateOdo(vehicle.id, value);
     setNewOdo("");
     setEditing(false);
+    setModalVisible(false);
   };
 
   const handleDelete = () => {
@@ -93,78 +97,94 @@ export default function VehicleDetailScreen() {
   const renderHistoryItem = ({ item }: { item: OdoEntry }) => (
     <View style={styles.historyRow}>
       <Ionicons name="time-outline" size={16} color={colors.textFaint} />
-      <Text style={styles.historyOdo}>{item.odo.toLocaleString()} km</Text>
-      <Text style={styles.historyDate}>
-        {new Date(item.date).toLocaleDateString(undefined, {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })}
-      </Text>
+      <Text style={styles.historyOdo}>{formatNumber(item.odo)} km</Text>
+      <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen options={{ title: vehicle.name }} />
+    <>
+      <View style={styles.container}>
+        <Stack.Screen options={{ title: vehicle.name }} />
 
-      <View style={styles.odoCard}>
-        <Text style={styles.odoLabel}>Current Odometer</Text>
-        <Text style={styles.odoValue}>{vehicle.odo.toLocaleString()}</Text>
-        <Text style={styles.odoUnit}>kilometers</Text>
-      </View>
-
-      {editing ? (
-        <View style={styles.editRow}>
-          <TextInput
-            value={newOdo}
-            onChangeText={setNewOdo}
-            keyboardType="numeric"
-            placeholder="New odometer reading"
-            placeholderTextColor={colors.textFaint}
-            style={styles.input}
-            autoFocus
-          />
-          <Pressable style={styles.saveBtn} onPress={handleUpdateOdo}>
-            <Ionicons name="checkmark" size={20} color={colors.accentText} />
-          </Pressable>
-          <Pressable
-            style={styles.cancelBtn}
-            onPress={() => {
-              setEditing(false);
-              setNewOdo("");
-            }}
-          >
-            <Ionicons name="close" size={20} color={colors.text} />
-          </Pressable>
+        <View style={styles.odoCard}>
+          <Text style={styles.odoLabel}>Current Odometer</Text>
+          <Text style={styles.odoValue}>{formatNumber(vehicle.odo)}</Text>
+          <Text style={styles.odoUnit}>kilometers</Text>
         </View>
-      ) : (
-        <Pressable style={styles.updateButton} onPress={() => setEditing(true)}>
-          <Ionicons
-            name="speedometer-outline"
-            size={18}
-            color={colors.accentText}
+
+        {!editing && (
+          <Button
+            icon="speedometer-outline"
+            buttonText="Update Odometer"
+            onPress={() => setModalVisible(true)}
           />
-          <Text style={styles.updateButtonText}>Update Odometer</Text>
+        )}
+
+        {/* HISTORY */}
+        <Text style={styles.sectionLabel}>History</Text>
+        <FlatList
+          data={vehicle.history}
+          keyExtractor={(item) => item.id}
+          renderItem={renderHistoryItem}
+          contentContainerStyle={{ paddingBottom: 12 }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No history yet.</Text>
+          }
+        />
+
+        <Pressable style={styles.deleteButton} onPress={handleDelete}>
+          <Ionicons name="trash-outline" size={16} color={colors.danger} />
+          <Text style={styles.deleteButtonText}>Delete Vehicle</Text>
         </Pressable>
-      )}
-
-      <Text style={styles.sectionLabel}>History</Text>
-      <FlatList
-        data={vehicle.history}
-        keyExtractor={(item) => item.id}
-        renderItem={renderHistoryItem}
-        contentContainerStyle={{ paddingBottom: 12 }}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No history yet.</Text>
+      </View>
+      {/* ADDING VEHICLE MODAL */}
+      <ModalComponent
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        modalHeader="Update Odometer"
+        modalFooter={
+          <>
+            <View style={styles.buttonContainer}>
+              <Button
+                variant="secondary"
+                buttonText="Cancel"
+                onPress={() => setModalVisible(false)}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button buttonText="Save" onPress={handleUpdateOdo} />
+            </View>
+          </>
         }
-      />
+      >
+        <InputValue
+          label="New Odometer Reading"
+          name={formatNumber(newOdo)}
+          setName={(text) => {
+            let value = text.replace(/,/g, "");
 
-      <Pressable style={styles.deleteButton} onPress={handleDelete}>
-        <Ionicons name="trash-outline" size={16} color={colors.danger} />
-        <Text style={styles.deleteButtonText}>Delete Vehicle</Text>
-      </Pressable>
-    </View>
+            // Keep only digits and one decimal point
+            value = value.replace(/[^0-9.]/g, "");
+
+            // Allow only one decimal point
+            const parts = value.split(".");
+            if (parts.length > 2) {
+              value = parts[0] + "." + parts.slice(1).join("");
+            }
+
+            // Limit decimal places to 2
+            if (parts[1]) {
+              value = `${parts[0]}.${parts[1].slice(0, 2)}`;
+            }
+
+            setNewOdo(value);
+          }}
+          placeholder="New odometer reading"
+          keyboardType="numeric"
+        />
+      </ModalComponent>
+    </>
   );
 }
 
@@ -259,4 +279,7 @@ const createStyles = (colors: ThemeColors) =>
       marginTop: 8,
     },
     deleteButtonText: { color: colors.danger, fontWeight: "600", fontSize: 13 },
+    buttonContainer: {
+      flex: 1,
+    },
   });

@@ -110,6 +110,7 @@ export default function IndexScreen() {
           }
         />
       </View>
+
       {/* ADDING VEHICLE MODAL */}
       <ModalComponent
         visible={modalVisible}

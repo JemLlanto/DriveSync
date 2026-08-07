@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -16,7 +17,7 @@ interface ModalProps {
   visible: boolean;
   onClose: () => void;
 }
-export default function Modal({ visible, onClose }: ModalProps) {
+export default function ModalComponent({ visible, onClose }: ModalProps) {
   const { addVehicle } = useVehicles();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -49,7 +50,9 @@ export default function Modal({ visible, onClose }: ModalProps) {
       visible={visible}
       animationType="slide"
       transparent
-      onRequestClose={onClose}
+      onRequestClose={() => {
+        onClose();
+      }}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -78,8 +81,12 @@ export default function Modal({ visible, onClose }: ModalProps) {
           />
 
           <View style={styles.modalActions}>
-            <Button buttonText="Cancel" onPress={onClose} />
-            <Button buttonText="Save" onPress={handleAddVehicle} />
+            <View style={styles.buttonContainer}>
+              <Button buttonText="Cancel" onPress={onClose} />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button buttonText="Save" onPress={handleAddVehicle} />
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -107,7 +114,6 @@ const createStyles = (colors: ThemeColors) =>
       fontWeight: "800",
       marginBottom: 16,
     },
-
     inputLabel: {
       color: colors.textMuted,
       fontSize: 13,
@@ -124,7 +130,15 @@ const createStyles = (colors: ThemeColors) =>
       borderWidth: 1,
       borderColor: colors.cardBorder,
     },
-    modalActions: { flexDirection: "row", gap: 12, marginTop: 24 },
+    modalActions: {
+      width: "100%",
+      flexDirection: "row",
+      gap: 12,
+      marginTop: 24,
+    },
+    buttonContainer: {
+      flex: 1,
+    },
     modalButton: {
       flex: 1,
       paddingVertical: 14,

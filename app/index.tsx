@@ -1,17 +1,54 @@
 import Button from "@/components/Button";
+import InputValue from "@/components/InputValue";
 import ModalComponent from "@/components/ModalComponent";
+import { formatNumber } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { ThemeColors, useTheme } from "../lib/theme";
 import { useVehicles, Vehicle } from "../lib/vehicleStore";
 
 export default function IndexScreen() {
-  const { vehicles, loading } = useVehicles();
+  const { vehicles, loading, addVehicle } = useVehicles();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [name, setName] = useState("");
+  const [odo, setOdo] = useState("");
+
+  const resetForm = () => {
+    setName("");
+    setOdo("");
+  };
+
+  useEffect(() => {
+    console.log("Vehicles updated:", vehicles);
+  }, [vehicles]);
+
+  const handleAddVehicle = async () => {
+    const trimmedOdo = odo.trim();
+    const odoNumber = Number(trimmedOdo);
+
+    if (!trimmedOdo || Number.isNaN(odoNumber) || odoNumber < 0) {
+      Alert.alert(
+        "Invalid odometer",
+        "Please enter a valid current odometer reading.",
+      );
+      return;
+    }
+
+    await addVehicle(name, odoNumber);
+    resetForm();
+    setModalVisible(false);
+  };
 
   const renderVehicle = ({ item }: { item: Vehicle }) => (
     <Pressable
@@ -73,7 +110,55 @@ export default function IndexScreen() {
       <ModalComponent
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-      />
+        modalHeader="Add Vehicle"
+        modalFooter={
+          <>
+            <View style={styles.buttonContainer}>
+              <Button
+                buttonText="Cancel"
+                onPress={() => setModalVisible(false)}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button buttonText="Save" onPress={handleAddVehicle} />
+            </View>
+          </>
+        }
+      >
+        <InputValue
+          label="Vehicle name (Model, Make, Nickname, etc.)"
+          name={name}
+          setName={setName}
+          placeholder="e.g. My Car"
+          keyboardType="default"
+        />
+
+        <InputValue
+          label="Current odometer (km)"
+          name={formatNumber(odo)}
+          setName={(text) => {
+            let value = text.replace(/,/g, "");
+
+            // Keep only digits and one decimal point
+            value = value.replace(/[^0-9.]/g, "");
+
+            // Allow only one decimal point
+            const parts = value.split(".");
+            if (parts.length > 2) {
+              value = parts[0] + "." + parts.slice(1).join("");
+            }
+
+            // Limit decimal places to 2
+            if (parts[1]) {
+              value = `${parts[0]}.${parts[1].slice(0, 2)}`;
+            }
+
+            setOdo(value);
+          }}
+          placeholder="e.g. 15,230"
+          keyboardType="decimal-pad"
+        />
+      </ModalComponent>
     </>
   );
 }
@@ -131,5 +216,8 @@ const createStyles = (colors: ThemeColors) =>
       textAlign: "center",
       fontSize: 14,
       lineHeight: 20,
+    },
+    buttonContainer: {
+      flex: 1,
     },
   });

@@ -1,4 +1,5 @@
 import Button from "@/components/Button";
+import ModalComponent from "@/components/ModalComponent";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
@@ -32,38 +33,48 @@ export default function IndexScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <Button buttonText="Add Vehicle" onPress={() => setModalVisible(true)} />
-      <Text style={styles.sectionLabel}>
-        {loading
-          ? "Loading..."
-          : vehicles.length
-            ? "Your Vehicles"
-            : "No vehicles yet"}
-      </Text>
+    <>
+      <View style={styles.container}>
+        <Button
+          icon="add-circle"
+          buttonText="Add Vehicle"
+          onPress={() => setModalVisible(true)}
+        />
+        <Text style={styles.sectionLabel}>
+          {loading
+            ? "Loading..."
+            : vehicles.length
+              ? "Your Vehicles"
+              : "No vehicles yet"}
+        </Text>
 
-      <FlatList
-        data={vehicles}
-        keyExtractor={(item) => item.id}
-        renderItem={renderVehicle}
-        contentContainerStyle={{ paddingBottom: 24 }}
-        ListEmptyComponent={
-          !loading ? (
-            <View style={styles.emptyState}>
-              <Ionicons
-                name="speedometer-outline"
-                size={40}
-                color={colors.cardBorder}
-              />
-              <Text style={styles.emptyStateText}>
-                Tap "Add Vehicle" to start tracking your odometer and
-                maintenance schedule.
-              </Text>
-            </View>
-          ) : null
-        }
+        <FlatList
+          data={vehicles}
+          keyExtractor={(item) => item.id}
+          renderItem={renderVehicle}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          ListEmptyComponent={
+            !loading ? (
+              <View style={styles.emptyState}>
+                <Ionicons
+                  name="speedometer-outline"
+                  size={40}
+                  color={colors.cardBorder}
+                />
+                <Text style={styles.emptyStateText}>
+                  Tap "Add Vehicle" to start tracking your odometer and
+                  maintenance schedule.
+                </Text>
+              </View>
+            ) : null
+          }
+        />
+      </View>
+      <ModalComponent
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
       />
-    </View>
+    </>
   );
 }
 

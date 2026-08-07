@@ -5,24 +5,32 @@ import { Pressable, StyleSheet, Text } from "react-native";
 
 interface ButtonProps {
   variant?: "primary" | "secondary";
+  icon?: React.ComponentProps<typeof Ionicons>["name"];
   buttonText: string;
   onPress: () => void;
 }
 
-export default function Button({ variant, buttonText, onPress }: ButtonProps) {
+export default function Button({
+  variant,
+  icon,
+  buttonText,
+  onPress,
+}: ButtonProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
-    <Pressable style={styles.addButton} onPress={onPress}>
-      <Ionicons name="add-circle" size={22} color={colors.accentText} />
-      <Text style={styles.addButtonText}>{buttonText}</Text>
+    <Pressable style={styles.button} onPress={onPress}>
+      {icon && <Ionicons name={icon} size={22} color={colors.accentText} />}
+
+      <Text style={styles.buttonText}>{buttonText}</Text>
     </Pressable>
   );
 }
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-    addButton: {
+    button: {
+      width: "100%",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -32,7 +40,7 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: 14,
       marginBottom: 24,
     },
-    addButtonText: {
+    buttonText: {
       color: colors.accentText,
       fontSize: 16,
       fontWeight: "700",

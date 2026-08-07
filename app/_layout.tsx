@@ -1,4 +1,4 @@
-import ThemeTogglerButton from "@/components/themeTogglerButton";
+import ThemeTogglerButton from "@/components/ThemeTogglerButton";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider, useTheme } from "../lib/theme";

@@ -1,50 +1,33 @@
 import { ThemeColors, useTheme } from "@/lib/theme";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { useVehicles } from "../lib/vehicleStore";
-import Button from "./Button";
 
 interface ModalProps {
   visible: boolean;
   onClose: () => void;
+  children: ReactNode;
+  modalHeader: string;
+  modalFooter?: ReactNode;
 }
-export default function ModalComponent({ visible, onClose }: ModalProps) {
+export default function ModalComponent({
+  visible,
+  onClose,
+  children,
+  modalHeader,
+  modalFooter,
+}: ModalProps) {
   const { addVehicle } = useVehicles();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [name, setName] = useState("");
-  const [odo, setOdo] = useState("");
 
-  const resetForm = () => {
-    setName("");
-    setOdo("");
-  };
-
-  const handleAddVehicle = async () => {
-    const trimmedOdo = odo.trim();
-    const odoNumber = Number(trimmedOdo);
-
-    if (!trimmedOdo || Number.isNaN(odoNumber) || odoNumber < 0) {
-      Alert.alert(
-        "Invalid odometer",
-        "Please enter a valid current odometer reading.",
-      );
-      return;
-    }
-
-    await addVehicle(name, odoNumber);
-    resetForm();
-    onClose();
-  };
   return (
     <Modal
       visible={visible}
@@ -59,35 +42,11 @@ export default function ModalComponent({ visible, onClose }: ModalProps) {
         style={styles.modalOverlay}
       >
         <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>Add Vehicle</Text>
-
-          <Text style={styles.inputLabel}>Vehicle name (optional)</Text>
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            placeholder="e.g. Toyota Vios"
-            placeholderTextColor={colors.textFaint}
-            style={styles.input}
-          />
-
-          <Text style={styles.inputLabel}>Current odometer (km)</Text>
-          <TextInput
-            value={odo}
-            onChangeText={setOdo}
-            placeholder="e.g. 15230"
-            placeholderTextColor={colors.textFaint}
-            keyboardType="numeric"
-            style={styles.input}
-          />
-
-          <View style={styles.modalActions}>
-            <View style={styles.buttonContainer}>
-              <Button buttonText="Cancel" onPress={onClose} />
-            </View>
-            <View style={styles.buttonContainer}>
-              <Button buttonText="Save" onPress={handleAddVehicle} />
-            </View>
-          </View>
+          <Text style={styles.modalTitle}>{modalHeader}</Text>
+          {children}
+          {modalFooter && (
+            <View style={styles.modalActions}>{modalFooter}</View>
+          )}
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -114,31 +73,14 @@ const createStyles = (colors: ThemeColors) =>
       fontWeight: "800",
       marginBottom: 16,
     },
-    inputLabel: {
-      color: colors.textMuted,
-      fontSize: 13,
-      marginBottom: 6,
-      marginTop: 12,
-    },
-    input: {
-      backgroundColor: colors.background,
-      borderRadius: 10,
-      paddingHorizontal: 14,
-      paddingVertical: 12,
-      color: colors.text,
-      fontSize: 15,
-      borderWidth: 1,
-      borderColor: colors.cardBorder,
-    },
+
     modalActions: {
       width: "100%",
       flexDirection: "row",
       gap: 12,
       marginTop: 24,
     },
-    buttonContainer: {
-      flex: 1,
-    },
+
     modalButton: {
       flex: 1,
       paddingVertical: 14,

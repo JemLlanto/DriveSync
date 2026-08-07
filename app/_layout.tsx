@@ -24,7 +24,13 @@ function ThemedStack() {
             headerRight: () => <ThemeTogglerButton />,
           }}
         />
-        <Stack.Screen name="vehicle/[id]" options={{ title: "Vehicle" }} />
+        <Stack.Screen
+          name="vehicle/[id]"
+          options={{
+            title: "Vehicle",
+            headerRight: () => <ThemeTogglerButton />,
+          }}
+        />
       </Stack>
     </>
   );

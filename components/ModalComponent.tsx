@@ -8,7 +8,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { useVehicles } from "../lib/vehicleStore";
 
 interface ModalProps {
   visible: boolean;
@@ -24,7 +23,6 @@ export default function ModalComponent({
   modalHeader,
   modalFooter,
 }: ModalProps) {
-  const { addVehicle } = useVehicles();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -42,8 +40,13 @@ export default function ModalComponent({
         style={styles.modalOverlay}
       >
         <View style={styles.modalCard}>
+          {/* MODAL HEADER */}
           <Text style={styles.modalTitle}>{modalHeader}</Text>
+
+          {/* MODAL BODY */}
           {children}
+
+          {/* MODAL FOOTER */}
           {modalFooter && (
             <View style={styles.modalActions}>{modalFooter}</View>
           )}
@@ -87,8 +90,4 @@ const createStyles = (colors: ThemeColors) =>
       borderRadius: 12,
       alignItems: "center",
     },
-    cancelButton: { backgroundColor: colors.cardBorder },
-    cancelButtonText: { color: colors.text, fontWeight: "700" },
-    saveButton: { backgroundColor: colors.accent },
-    saveButtonText: { color: colors.accentText, fontWeight: "700" },
   });

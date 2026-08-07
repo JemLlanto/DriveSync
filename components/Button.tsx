@@ -11,13 +11,16 @@ interface ButtonProps {
 }
 
 export default function Button({
-  variant,
+  variant = "primary",
   icon,
   buttonText,
   onPress,
 }: ButtonProps) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(
+    () => createStyles(colors, variant),
+    [colors, variant],
+  );
   return (
     <Pressable style={styles.button} onPress={onPress}>
       {icon && <Ionicons name={icon} size={22} color={colors.accentText} />}
@@ -27,7 +30,7 @@ export default function Button({
   );
 }
 
-const createStyles = (colors: ThemeColors) =>
+const createStyles = (colors: ThemeColors, variant: "primary" | "secondary") =>
   StyleSheet.create({
     button: {
       width: "100%",
@@ -35,13 +38,14 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: "center",
       justifyContent: "center",
       gap: 8,
-      backgroundColor: colors.accent,
+      backgroundColor:
+        variant === "primary" ? colors.accent : colors.cardBorder,
       paddingVertical: 14,
       borderRadius: 14,
       marginBottom: 24,
     },
     buttonText: {
-      color: colors.accentText,
+      color: variant === "primary" ? colors.accentText : colors.text,
       fontSize: 16,
       fontWeight: "700",
     },

@@ -15,7 +15,8 @@ import { OdoEntry, useVehicles } from "../../lib/vehicleStore";
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getVehicle, updateOdo, removeVehicle, loading } = useVehicles();
+  const { getVehicles, getVehicle, updateOdo, removeVehicle, loading } =
+    useVehicles();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [editing, setEditing] = useState(false);

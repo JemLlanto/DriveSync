@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
+import { Alert } from "react-native";
 
 export type OdoEntry = {
   id: string;
@@ -47,12 +48,14 @@ export function useVehicles() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const getVehicles = useCallback(async () => {
+    const stored = await loadVehicles();
+    setVehicles(stored);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
-    (async () => {
-      const stored = await loadVehicles();
-      setVehicles(stored);
-      setLoading(false);
-    })();
+    getVehicles();
   }, []);
 
   const persist = useCallback(async (next: Vehicle[]) => {
@@ -62,6 +65,19 @@ export function useVehicles() {
 
   const addVehicle = useCallback(
     async (name: string, odo: number) => {
+      const trimmedName = name.trim() || "Unnamed Vehicle";
+
+      const isDuplicate = vehicles.some(
+        (v) => v.name.trim().toLowerCase() === trimmedName.toLowerCase(),
+      );
+
+      if (isDuplicate) {
+        Alert.alert(
+          "Vehicle Already Exists",
+          `A vehicle named "${trimmedName}" already exists. Please choose a different name.`,
+        );
+        return { success: false };
+      }
       const newVehicle: Vehicle = {
         id: makeId(),
         name: name.trim() || "Unnamed Vehicle",
@@ -70,7 +86,7 @@ export function useVehicles() {
         history: [{ id: makeId(), odo, date: new Date().toISOString() }],
       };
       await persist([newVehicle, ...vehicles]);
-      return newVehicle;
+      return { success: true };
     },
     [vehicles, persist],
   );
@@ -107,6 +123,7 @@ export function useVehicles() {
   );
 
   return {
+    getVehicles,
     vehicles,
     loading,
     addVehicle,

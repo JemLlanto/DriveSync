@@ -17,20 +17,22 @@ import { ThemeColors, useTheme } from "../lib/theme";
 import { useVehicles, Vehicle } from "../lib/vehicleStore";
 
 export default function IndexScreen() {
-  const { vehicles, loading, addVehicle } = useVehicles();
+  const { getVehicles, vehicles, loading, addVehicle } = useVehicles();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [modalVisible, setModalVisible] = useState(false);
   const [name, setName] = useState("");
   const [odo, setOdo] = useState("");
 
-  const resetForm = () => {
+  const closeModal = () => {
     setName("");
     setOdo("");
+    setModalVisible(false);
   };
 
   useEffect(() => {
     console.log("Vehicles updated:", vehicles);
+    getVehicles();
   }, [vehicles]);
 
   const handleAddVehicle = async () => {
@@ -45,9 +47,10 @@ export default function IndexScreen() {
       return;
     }
 
-    await addVehicle(name, odoNumber);
-    resetForm();
-    setModalVisible(false);
+    const response = await addVehicle(name, odoNumber);
+    if (response.success) {
+      closeModal();
+    }
   };
 
   const renderVehicle = ({ item }: { item: Vehicle }) => (
@@ -107,16 +110,18 @@ export default function IndexScreen() {
           }
         />
       </View>
+      {/* ADDING VEHICLE MODAL */}
       <ModalComponent
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        onClose={closeModal}
         modalHeader="Add Vehicle"
         modalFooter={
           <>
             <View style={styles.buttonContainer}>
               <Button
+                variant="secondary"
                 buttonText="Cancel"
-                onPress={() => setModalVisible(false)}
+                onPress={closeModal}
               />
             </View>
             <View style={styles.buttonContainer}>

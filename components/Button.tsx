@@ -42,7 +42,6 @@ const createStyles = (colors: ThemeColors, variant: "primary" | "secondary") =>
         variant === "primary" ? colors.accent : colors.cardBorder,
       paddingVertical: 14,
       borderRadius: 14,
-      marginBottom: 24,
     },
     buttonText: {
       color: variant === "primary" ? colors.accentText : colors.text,

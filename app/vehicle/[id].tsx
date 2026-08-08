@@ -1,7 +1,11 @@
 import Button from "@/components/Button";
 import InputValue from "@/components/InputValue";
 import ModalComponent from "@/components/ModalComponent";
-import { formatNumber, formatRelativeDate } from "@/utils/formatting";
+import {
+  formatNumber,
+  formatRelativeDate,
+  sanitizeNumberInput,
+} from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
@@ -14,18 +18,32 @@ import {
   View,
 } from "react-native";
 import { ThemeColors, useTheme } from "../../lib/theme";
-import { OdoEntry, useVehicles } from "../../lib/vehicleStore";
+import {
+  FullTankMethodEntry,
+  OdoEntry,
+  useVehicles,
+} from "../../lib/vehicleStore";
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getVehicle, updateOdo, removeVehicle, loading } = useVehicles();
+  const {
+    getVehicle,
+    updateOdo,
+    computeGasConsumption,
+    removeVehicle,
+    loading,
+  } = useVehicles();
+  const vehicle = getVehicle(id);
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [editing, setEditing] = useState(false);
-  const [newOdo, setNewOdo] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-
-  const vehicle = getVehicle(id);
+  const [formData, setFormData] = useState<FullTankMethodEntry>({
+    lastFullTankOdo: vehicle?.lastFullTankOdo || 0,
+    latestOdo: 0,
+    littersAdded: 0,
+  });
+  const [FullTankMethod, setFullTankMethod] = useState<boolean>(false);
 
   if (loading) {
     return (
@@ -44,7 +62,7 @@ export default function VehicleDetailScreen() {
   }
 
   const handleUpdateOdo = async () => {
-    const trimmed = newOdo.trim();
+    const trimmed = String(formData.latestOdo).trim();
     const value = Number(trimmed);
 
     if (!trimmed || Number.isNaN(value) || value < 0) {
@@ -61,7 +79,7 @@ export default function VehicleDetailScreen() {
             text: "Continue",
             onPress: async () => {
               await updateOdo(vehicle.id, value);
-              setNewOdo("");
+              setFormData((prev) => ({ ...prev, latestOdo: 0 }));
               setEditing(false);
             },
           },
@@ -70,8 +88,10 @@ export default function VehicleDetailScreen() {
       return;
     }
 
-    await updateOdo(vehicle.id, value);
-    setNewOdo("");
+    FullTankMethod
+      ? await computeGasConsumption(vehicle.id, formData)
+      : await updateOdo(vehicle.id, value);
+    setFormData((prev) => ({ ...prev, latestOdo: 0 }));
     setEditing(false);
     setModalVisible(false);
   };
@@ -107,10 +127,38 @@ export default function VehicleDetailScreen() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: vehicle.name }} />
 
+        {/* ODO READING */}
         <View style={styles.odoCard}>
           <Text style={styles.odoLabel}>Current Odometer</Text>
           <Text style={styles.odoValue}>{formatNumber(vehicle.odo)}</Text>
           <Text style={styles.odoUnit}>kilometers</Text>
+        </View>
+        {/* GAS CONSUMPTION */}
+        <View style={styles.GasConsCard}>
+          <Text style={styles.odoLabel}>Gas Consumption</Text>
+          {!vehicle.gasConsumption ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 10,
+              }}
+            >
+              <Button
+                buttonText="Calculate Gas Consumption"
+                onPress={() => {
+                  setModalVisible(true);
+                  setFullTankMethod(true);
+                }}
+              />
+            </View>
+          ) : (
+            <>
+              <Text style={styles.GasConsValue}>
+                {formatNumber(vehicle.odo)} km/ltr
+              </Text>
+            </>
+          )}
         </View>
 
         {!editing && (
@@ -142,47 +190,114 @@ export default function VehicleDetailScreen() {
       <ModalComponent
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        modalHeader="Update Odometer"
+        modalHeader={
+          FullTankMethod ? "Compute Gas Consumption" : "Update Odometer"
+        }
         modalFooter={
           <>
-            <View style={styles.buttonContainer}>
-              <Button
-                variant="secondary"
-                buttonText="Cancel"
-                onPress={() => setModalVisible(false)}
-              />
-            </View>
-            <View style={styles.buttonContainer}>
-              <Button buttonText="Save" onPress={handleUpdateOdo} />
+            <View
+              style={{
+                width: "100%",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              {/* Row 1 */}
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <View style={styles.buttonContainer}>
+                  <Button
+                    variant="secondary"
+                    buttonText={
+                      FullTankMethod
+                        ? "Update Odometer"
+                        : "Calculate Gas Consumption"
+                    }
+                    onPress={() => setFullTankMethod((prev) => !prev)}
+                  />
+                </View>
+              </View>
+
+              {/* Row 2 */}
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <View style={styles.buttonContainer}>
+                  <Button
+                    variant="secondary"
+                    buttonText="Cancel"
+                    onPress={() => setModalVisible(false)}
+                  />
+                </View>
+                <View style={styles.buttonContainer}>
+                  <Button buttonText="Save" onPress={handleUpdateOdo} />
+                </View>
+              </View>
             </View>
           </>
         }
       >
-        <InputValue
-          label="New Odometer Reading"
-          name={formatNumber(newOdo)}
-          setName={(text) => {
-            let value = text.replace(/,/g, "");
-
-            // Keep only digits and one decimal point
-            value = value.replace(/[^0-9.]/g, "");
-
-            // Allow only one decimal point
-            const parts = value.split(".");
-            if (parts.length > 2) {
-              value = parts[0] + "." + parts.slice(1).join("");
-            }
-
-            // Limit decimal places to 2
-            if (parts[1]) {
-              value = `${parts[0]}.${parts[1].slice(0, 2)}`;
-            }
-
-            setNewOdo(value);
-          }}
-          placeholder="New odometer reading"
-          keyboardType="numeric"
-        />
+        {FullTankMethod ? (
+          // FULL TANK METHOD FORM
+          <>
+            {/* Last Full Tank Odometer Reading */}
+            <InputValue
+              label="Last Full Tank Odometer Reading"
+              name={
+                formData.lastFullTankOdo
+                  ? formatNumber(formData.lastFullTankOdo)
+                  : ""
+              }
+              setName={(text) => {
+                let value = sanitizeNumberInput(text);
+                setFormData((prev) => ({
+                  ...prev,
+                  lastFullTankOdo: Number(value),
+                }));
+              }}
+              placeholder="Last full tank odometer reading"
+              keyboardType="decimal-pad"
+            />
+            {/* Latest Odometer Reading */}
+            <InputValue
+              label="Latest Odometer Reading"
+              name={formData.latestOdo ? formatNumber(formData.latestOdo) : ""}
+              setName={(text) => {
+                let value = sanitizeNumberInput(text);
+                setFormData((prev) => ({
+                  ...prev,
+                  latestOdo: Number(value),
+                }));
+              }}
+              placeholder="Latest odometer reading"
+              keyboardType="decimal-pad"
+            />
+            {/* Litters Added */}
+            <InputValue
+              label="Litters Added"
+              name={
+                formData.littersAdded ? formatNumber(formData.littersAdded) : ""
+              }
+              setName={(text) => {
+                let value = sanitizeNumberInput(text);
+                setFormData((prev) => ({
+                  ...prev,
+                  littersAdded: Number(value),
+                }));
+              }}
+              placeholder="Litters added"
+              keyboardType="decimal-pad"
+            />
+          </>
+        ) : (
+          <InputValue
+            label="New Odometer Reading"
+            name={formatNumber(formData.latestOdo)}
+            setName={(text) => {
+              let value = sanitizeNumberInput(text);
+              setFormData((prev) => ({ ...prev, latestOdo: Number(value) }));
+            }}
+            placeholder="New odometer reading"
+            keyboardType="decimal-pad"
+          />
+        )}
       </ModalComponent>
     </>
   );
@@ -213,6 +328,19 @@ const createStyles = (colors: ThemeColors) =>
       marginTop: 6,
     },
     odoUnit: { color: colors.textFaint, fontSize: 13, marginTop: 2 },
+    GasConsCard: {
+      backgroundColor: colors.cardBorder,
+      borderRadius: 18,
+      padding: 24,
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    GasConsValue: {
+      color: colors.accent,
+      fontSize: 22,
+      fontWeight: "800",
+      marginTop: 6,
+    },
     updateButton: {
       flexDirection: "row",
       alignItems: "center",

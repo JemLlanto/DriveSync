@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import InputValue from "@/components/InputValue";
 import ModalComponent from "@/components/ModalComponent";
-import { formatNumber } from "@/utils/formatting";
+import { formatNumber, sanitizeNumberInput } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -143,22 +143,7 @@ export default function IndexScreen() {
           label="Current odometer (km)"
           name={formatNumber(odo)}
           setName={(text) => {
-            let value = text.replace(/,/g, "");
-
-            // Keep only digits and one decimal point
-            value = value.replace(/[^0-9.]/g, "");
-
-            // Allow only one decimal point
-            const parts = value.split(".");
-            if (parts.length > 2) {
-              value = parts[0] + "." + parts.slice(1).join("");
-            }
-
-            // Limit decimal places to 2
-            if (parts[1]) {
-              value = `${parts[0]}.${parts[1].slice(0, 2)}`;
-            }
-
+            let value = sanitizeNumberInput(text);
             setOdo(value);
           }}
           placeholder="e.g. 15,230"

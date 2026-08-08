@@ -120,16 +120,24 @@ export function useVehicles() {
   );
 
   const computeGasConsumption = useCallback(
-    async (vehicleId: string, formData: FullTankMethodEntry) => {
+    async (vehicleId: string, data: any) => {
+      const formData: FullTankMethodEntry = data as FullTankMethodEntry;
+      let consumption =
+        (formData.latestOdo - formData.lastFullTankOdo) / formData.littersAdded;
+
+      console.log(
+        "Computing gas consumption for vehicle:",
+        `${consumption} km/liters`,
+        vehicleId,
+        formData,
+      );
       const next = vehicles.map((v) =>
         v.id === vehicleId
           ? {
               ...v,
-              lastFullTankOdo: v.odo,
+              lastFullTankOdo: formData.latestOdo,
               odo: formData.latestOdo,
-              gasConsumption:
-                (formData.lastFullTankOdo - formData.latestOdo) /
-                formData.littersAdded,
+              gasConsumption: consumption,
               history: [
                 {
                   id: makeId(),

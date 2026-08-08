@@ -59,12 +59,19 @@ export function useVehicles() {
 
   const getVehicles = useCallback(async () => {
     const stored = await loadVehicles();
-    setVehicles(stored);
     setLoading(false);
+    return { success: true, vehicles: stored };
   }, []);
 
+  const fetchVehicles = async () => {
+    const response = await getVehicles();
+    if (response.success) {
+      setVehicles(response.vehicles);
+    }
+  };
+
   useEffect(() => {
-    getVehicles();
+    fetchVehicles();
   }, []);
 
   const persist = useCallback(async (next: Vehicle[]) => {

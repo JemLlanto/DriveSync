@@ -3,8 +3,8 @@ import InputValue from "@/components/InputValue";
 import ModalComponent from "@/components/ModalComponent";
 import { formatNumber, sanitizeNumberInput } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -18,6 +18,7 @@ import { useVehicles, Vehicle } from "../lib/vehicleStore";
 
 export default function IndexScreen() {
   const { getVehicles, vehicles, loading, addVehicle } = useVehicles();
+  const [userVehicles, setUserVehicles] = useState<Vehicle[]>([]);
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -30,10 +31,18 @@ export default function IndexScreen() {
     setModalVisible(false);
   };
 
-  useEffect(() => {
-    console.log("Vehicles updated:", vehicles);
-    getVehicles();
-  }, []);
+  const fetchVehicles = async () => {
+    const response = await getVehicles();
+    if (response.success) {
+      setUserVehicles(response.vehicles);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchVehicles();
+    }, [getVehicles]),
+  );
 
   const handleAddVehicle = async () => {
     const trimmedOdo = odo.trim();
@@ -49,6 +58,7 @@ export default function IndexScreen() {
 
     const response = await addVehicle(name, odoNumber);
     if (response.success) {
+      fetchVehicles();
       closeModal();
     }
   };
@@ -83,13 +93,13 @@ export default function IndexScreen() {
         <Text style={styles.sectionLabel}>
           {loading
             ? "Loading..."
-            : vehicles.length
+            : userVehicles.length
               ? "Your Vehicles"
               : "No vehicles yet"}
         </Text>
 
         <FlatList
-          data={vehicles}
+          data={userVehicles}
           keyExtractor={(item) => item.id}
           renderItem={renderVehicle}
           contentContainerStyle={{ paddingBottom: 24 }}

@@ -8,8 +8,13 @@ import {
   sanitizeNumberInput,
 } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, router, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
+import {
+  Stack,
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -36,11 +41,19 @@ export default function VehicleDetailScreen() {
   const [editing, setEditing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [formData, setFormData] = useState({
-    lastFullTankOdo: vehicle?.lastFullTankOdo || "",
+    lastFullTankOdo: "",
     latestOdo: "",
     littersAdded: "",
   });
   const [FullTankMethod, setFullTankMethod] = useState<boolean>(false);
+  useFocusEffect(
+    useCallback(() => {
+      setFormData((prev) => ({
+        ...prev,
+        lastFullTankOdo: String(vehicle?.lastFullTankOdo) || "",
+      }));
+    }, [vehicle]),
+  );
 
   if (loading) {
     return (
@@ -75,9 +88,17 @@ export default function VehicleDetailScreen() {
           {
             text: "Continue",
             onPress: async () => {
-              await updateOdo(vehicle.id, value);
-              setFormData((prev) => ({ ...prev, latestOdo: "" }));
+              FullTankMethod
+                ? await computeGasConsumption(vehicle.id, formData)
+                : await updateOdo(vehicle.id, value);
+              setFormData({
+                lastFullTankOdo: formData.latestOdo,
+                latestOdo: "",
+                littersAdded: "",
+              });
               setEditing(false);
+              setModalVisible(false);
+              setFullTankMethod(false);
             },
           },
         ],
@@ -88,9 +109,14 @@ export default function VehicleDetailScreen() {
     FullTankMethod
       ? await computeGasConsumption(vehicle.id, formData)
       : await updateOdo(vehicle.id, value);
-    setFormData((prev) => ({ ...prev, latestOdo: "" }));
+    setFormData({
+      lastFullTankOdo: formData.latestOdo,
+      latestOdo: "",
+      littersAdded: "",
+    });
     setEditing(false);
     setModalVisible(false);
+    setFullTankMethod(false);
   };
 
   const handleDelete = () => {

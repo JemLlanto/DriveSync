@@ -76,7 +76,10 @@ export default function IndexScreen() {
       </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.vehicleName}>{item.name}</Text>
-        <Text style={styles.vehicleOdo}>{item.odo.toLocaleString()} km</Text>
+        <Text style={styles.vehicleOdo}>Odo: {formatNumber(item.odo)} km</Text>
+        {/* <Text style={styles.vehicleOdo}>
+          Trip: {formatNumber(item.tripOdo) || 0} km
+        </Text> */}
       </View>
       <Ionicons name="chevron-forward" size={20} color={colors.textFaint} />
     </Pressable>

@@ -75,6 +75,7 @@ export function useVehicles() {
   }, []);
 
   const persist = useCallback(async (next: Vehicle[]) => {
+    console.log("Persisting vehicles:", next);
     setVehicles(next);
     await saveVehicles(next);
   }, []);
@@ -109,10 +110,12 @@ export function useVehicles() {
 
   const updateOdo = useCallback(
     async (vehicleId: string, newOdo: number) => {
+      // console.log("Updating odometer for vehicle:", vehicleId, newOdo);
       const next = vehicles.map((v) =>
         v.id === vehicleId
           ? {
               ...v,
+              tripOdo: (v.tripOdo || 0) + (newOdo - v.odo),
               odo: newOdo,
               history: [
                 { id: makeId(), odo: newOdo, date: new Date().toISOString() },
@@ -142,6 +145,7 @@ export function useVehicles() {
         v.id === vehicleId
           ? {
               ...v,
+              tripOdo: (v.tripOdo || 0) + (formData.latestOdo - v.odo),
               lastFullTankOdo: formData.latestOdo,
               odo: formData.latestOdo,
               gasConsumption: consumption,

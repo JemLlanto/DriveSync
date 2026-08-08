@@ -5,6 +5,7 @@ import { Alert } from "react-native";
 export type OdoEntry = {
   id: string;
   odo: number;
+  action?: string;
   date: string; // ISO string
 };
 
@@ -153,6 +154,32 @@ export function useVehicles() {
                 {
                   id: makeId(),
                   odo: formData.latestOdo,
+                  action: "Full tank method",
+                  date: new Date().toISOString(),
+                },
+                ...v.history,
+              ],
+            }
+          : v,
+      );
+      await persist(next);
+    },
+    [vehicles, persist],
+  );
+
+  const resetTripMeterOdo = useCallback(
+    async (vehicleId: string) => {
+      // console.log("Updating odometer for vehicle:", vehicleId, newOdo);
+      const next = vehicles.map((v) =>
+        v.id === vehicleId
+          ? {
+              ...v,
+              tripOdo: 0,
+              history: [
+                {
+                  id: makeId(),
+                  odo: v.odo,
+                  action: "Trip meter reset",
                   date: new Date().toISOString(),
                 },
                 ...v.history,
@@ -185,6 +212,7 @@ export function useVehicles() {
     updateOdo,
     computeGasConsumption,
     removeVehicle,
+    resetTripMeterOdo,
     getVehicle,
   };
 }

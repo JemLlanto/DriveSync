@@ -33,6 +33,7 @@ export default function VehicleDetailScreen() {
     updateOdo,
     computeGasConsumption,
     removeVehicle,
+    resetTripMeterOdo,
     loading,
   } = useVehicles();
   const vehicle = getVehicle(id);
@@ -137,9 +138,30 @@ export default function VehicleDetailScreen() {
     );
   };
 
+  const resetTripMeter = () => {
+    Alert.alert(
+      "Reset Trip Meter",
+      `Reset the trip meter for "${vehicle.name}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Reset",
+          style: "destructive",
+          onPress: async () => {
+            await resetTripMeterOdo(vehicle.id);
+            getVehicle(id);
+          },
+        },
+      ],
+    );
+  };
+
   const renderHistoryItem = ({ item }: { item: OdoEntry }) => (
     <View style={styles.historyRow}>
       <Ionicons name="time-outline" size={16} color={colors.textFaint} />
+      <Text style={styles.historyAction}>
+        {item.action || "Odometer update"}:
+      </Text>
       <Text style={styles.historyOdo}>{formatNumber(item.odo)} km</Text>
       <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text>
     </View>
@@ -155,6 +177,11 @@ export default function VehicleDetailScreen() {
           <Text style={styles.odoLabel}>Current Odometer</Text>
           <Text style={styles.odoValue}>{formatNumber(vehicle.odo)}</Text>
           <Text style={styles.odoUnit}>kilometers</Text>
+          <Button
+            icon="speedometer-outline"
+            buttonText="Update Odometer"
+            onPress={() => setModalVisible(true)}
+          />
         </View>
         {/* TRIP ODO & GAS CONSUMPTION */}
         <View style={styles.TripGasCard}>
@@ -181,10 +208,7 @@ export default function VehicleDetailScreen() {
                 variant="secondary"
                 icon="refresh-outline"
                 buttonText="Reset"
-                onPress={() => {
-                  setModalVisible(true);
-                  setFullTankMethod(true);
-                }}
+                onPress={resetTripMeter}
               />
             </View>
           </View>
@@ -219,14 +243,6 @@ export default function VehicleDetailScreen() {
             </View>
           </View>
         </View>
-
-        {!editing && (
-          <Button
-            icon="speedometer-outline"
-            buttonText="Update Odometer"
-            onPress={() => setModalVisible(true)}
-          />
-        )}
 
         {/* HISTORY */}
         <Text style={styles.sectionLabel}>History</Text>
@@ -386,7 +402,12 @@ const createStyles = (colors: ThemeColors) =>
       fontWeight: "800",
       marginTop: 6,
     },
-    odoUnit: { color: colors.textFaint, fontSize: 13, marginTop: 2 },
+    odoUnit: {
+      color: colors.textFaint,
+      fontSize: 13,
+      marginTop: 2,
+      marginBottom: 12,
+    },
     TripGasCard: {
       width: "100%",
       flexDirection: "row",
@@ -444,7 +465,6 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textMuted,
       fontSize: 14,
       fontWeight: "600",
-      marginTop: 24,
       marginBottom: 10,
     },
     historyRow: {
@@ -458,6 +478,7 @@ const createStyles = (colors: ThemeColors) =>
       borderWidth: 1,
       borderColor: colors.cardBorder,
     },
+    historyAction: { color: colors.accent, fontWeight: "600" },
     historyOdo: { color: colors.text, fontWeight: "600", flex: 1 },
     historyDate: { color: colors.textFaint, fontSize: 12 },
     emptyText: { color: colors.textFaint, fontSize: 13 },

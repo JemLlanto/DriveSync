@@ -130,10 +130,20 @@ export default function VehicleDetailScreen() {
           <Text style={styles.odoValue}>{formatNumber(vehicle.odo)}</Text>
           <Text style={styles.odoUnit}>kilometers</Text>
         </View>
-        {/* GAS CONSUMPTION */}
-        <View style={styles.GasConsCard}>
-          <Text style={styles.odoLabel}>Gas Consumption</Text>
-          {!vehicle.gasConsumption ? (
+        {/* TRIP ODO & GAS CONSUMPTION */}
+        <View style={styles.TripGasCard}>
+          {/* TRIP CARD */}
+          <View
+            style={{
+              flex: 1,
+              flexShrink: 1,
+              alignItems: "center",
+            }}
+          >
+            <Text style={styles.odoLabel}>Current Trip</Text>
+            <Text style={styles.GasConsValue}>
+              {roundUp2(vehicle.tripOdo || 0)} km
+            </Text>
             <View
               style={{
                 flexDirection: "row",
@@ -142,20 +152,46 @@ export default function VehicleDetailScreen() {
               }}
             >
               <Button
-                buttonText="Calculate Gas Consumption"
+                variant="secondary"
+                icon="refresh-outline"
+                buttonText="Reset"
                 onPress={() => {
                   setModalVisible(true);
                   setFullTankMethod(true);
                 }}
               />
             </View>
-          ) : (
-            <>
-              <Text style={styles.GasConsValue}>
-                {roundUp2(vehicle.gasConsumption)} km/ltr
-              </Text>
-            </>
-          )}
+          </View>
+          {/* GAS CONSUMPTION CARD */}
+          <View
+            style={{
+              flex: 1,
+              flexShrink: 1,
+              alignItems: "center",
+            }}
+          >
+            <Text style={styles.odoLabel}>Gas Consumption</Text>
+            <Text style={styles.GasConsValue}>
+              {roundUp2(vehicle.gasConsumption || 0)} km/ltr
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 10,
+              }}
+            >
+              <Button
+                variant="secondary"
+                icon="calculator-outline"
+                buttonText="Calculate"
+                onPress={() => {
+                  setModalVisible(true);
+                  setFullTankMethod(true);
+                }}
+              />
+            </View>
+          </View>
         </View>
 
         {!editing && (
@@ -188,7 +224,7 @@ export default function VehicleDetailScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         modalHeader={
-          FullTankMethod ? "Compute Gas Consumption" : "Update Odometer"
+          FullTankMethod ? "Calculate Gas Consumption" : "Update Odometer"
         }
         modalFooter={
           <>
@@ -325,11 +361,14 @@ const createStyles = (colors: ThemeColors) =>
       marginTop: 6,
     },
     odoUnit: { color: colors.textFaint, fontSize: 13, marginTop: 2 },
-    GasConsCard: {
+    TripGasCard: {
+      width: "100%",
+      flexDirection: "row",
+      justifyContent: "space-around",
+      gap: 12,
       backgroundColor: colors.cardBorder,
       borderRadius: 18,
       padding: 24,
-      alignItems: "center",
       marginBottom: 16,
     },
     GasConsValue: {
@@ -379,6 +418,7 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textMuted,
       fontSize: 14,
       fontWeight: "600",
+      marginTop: 24,
       marginBottom: 10,
     },
     historyRow: {

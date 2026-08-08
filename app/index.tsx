@@ -33,7 +33,7 @@ export default function IndexScreen() {
   useEffect(() => {
     console.log("Vehicles updated:", vehicles);
     getVehicles();
-  }, [vehicles]);
+  }, []);
 
   const handleAddVehicle = async () => {
     const trimmedOdo = odo.trim();
@@ -172,6 +172,7 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textMuted,
       fontSize: 14,
       fontWeight: "600",
+      marginTop: 20,
       marginBottom: 10,
     },
     vehicleCard: {

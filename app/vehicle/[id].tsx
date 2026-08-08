@@ -4,6 +4,7 @@ import ModalComponent from "@/components/ModalComponent";
 import {
   formatNumber,
   formatRelativeDate,
+  roundUp2,
   sanitizeNumberInput,
 } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,11 +19,7 @@ import {
   View,
 } from "react-native";
 import { ThemeColors, useTheme } from "../../lib/theme";
-import {
-  FullTankMethodEntry,
-  OdoEntry,
-  useVehicles,
-} from "../../lib/vehicleStore";
+import { OdoEntry, useVehicles } from "../../lib/vehicleStore";
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -38,10 +35,10 @@ export default function VehicleDetailScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [editing, setEditing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [formData, setFormData] = useState<FullTankMethodEntry>({
-    lastFullTankOdo: vehicle?.lastFullTankOdo || 0,
-    latestOdo: 0,
-    littersAdded: 0,
+  const [formData, setFormData] = useState({
+    lastFullTankOdo: vehicle?.lastFullTankOdo || "",
+    latestOdo: "",
+    littersAdded: "",
   });
   const [FullTankMethod, setFullTankMethod] = useState<boolean>(false);
 
@@ -79,7 +76,7 @@ export default function VehicleDetailScreen() {
             text: "Continue",
             onPress: async () => {
               await updateOdo(vehicle.id, value);
-              setFormData((prev) => ({ ...prev, latestOdo: 0 }));
+              setFormData((prev) => ({ ...prev, latestOdo: "" }));
               setEditing(false);
             },
           },
@@ -91,7 +88,7 @@ export default function VehicleDetailScreen() {
     FullTankMethod
       ? await computeGasConsumption(vehicle.id, formData)
       : await updateOdo(vehicle.id, value);
-    setFormData((prev) => ({ ...prev, latestOdo: 0 }));
+    setFormData((prev) => ({ ...prev, latestOdo: "" }));
     setEditing(false);
     setModalVisible(false);
   };
@@ -155,7 +152,7 @@ export default function VehicleDetailScreen() {
           ) : (
             <>
               <Text style={styles.GasConsValue}>
-                {formatNumber(vehicle.odo)} km/ltr
+                {roundUp2(vehicle.gasConsumption)} km/ltr
               </Text>
             </>
           )}
@@ -249,7 +246,7 @@ export default function VehicleDetailScreen() {
                 let value = sanitizeNumberInput(text);
                 setFormData((prev) => ({
                   ...prev,
-                  lastFullTankOdo: Number(value),
+                  lastFullTankOdo: value,
                 }));
               }}
               placeholder="Last full tank odometer reading"
@@ -263,7 +260,7 @@ export default function VehicleDetailScreen() {
                 let value = sanitizeNumberInput(text);
                 setFormData((prev) => ({
                   ...prev,
-                  latestOdo: Number(value),
+                  latestOdo: value,
                 }));
               }}
               placeholder="Latest odometer reading"
@@ -279,7 +276,7 @@ export default function VehicleDetailScreen() {
                 let value = sanitizeNumberInput(text);
                 setFormData((prev) => ({
                   ...prev,
-                  littersAdded: Number(value),
+                  littersAdded: value,
                 }));
               }}
               placeholder="Litters added"
@@ -292,7 +289,7 @@ export default function VehicleDetailScreen() {
             name={formatNumber(formData.latestOdo)}
             setName={(text) => {
               let value = sanitizeNumberInput(text);
-              setFormData((prev) => ({ ...prev, latestOdo: Number(value) }));
+              setFormData((prev) => ({ ...prev, latestOdo: value }));
             }}
             placeholder="New odometer reading"
             keyboardType="decimal-pad"

@@ -84,3 +84,5 @@ export const formatRelativeDate = (
   const years = Math.floor(diff / year);
   return `${years} year${years > 1 ? "s" : ""} ago`;
 };
+
+export const roundUp2 = (num: number) => Math.ceil(num * 100) / 100;

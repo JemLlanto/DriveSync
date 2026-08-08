@@ -1,3 +1,22 @@
+export const sanitizeNumberInput = (input: string): string => {
+  let value = input.replace(/,/g, "");
+
+  // Keep only digits and one decimal point
+  value = value.replace(/[^0-9.]/g, "");
+
+  // Allow only one decimal point
+  const parts = value.split(".");
+  if (parts.length > 2) {
+    value = parts[0] + "." + parts.slice(1).join("");
+  }
+
+  // Limit decimal places to 2
+  if (parts[1]) {
+    value = `${parts[0]}.${parts[1].slice(0, 2)}`;
+  }
+  return value;
+};
+
 export const formatNumber = (
   value: string | number | null | undefined,
 ): string => {

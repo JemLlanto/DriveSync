@@ -23,7 +23,13 @@ export default function Button({
   );
   return (
     <Pressable style={styles.button} onPress={onPress}>
-      {icon && <Ionicons name={icon} size={22} color={colors.accentText} />}
+      {icon && (
+        <Ionicons
+          name={icon}
+          size={22}
+          color={variant === "primary" ? colors.accentText : colors.text}
+        />
+      )}
 
       <Text style={styles.buttonText}>{buttonText}</Text>
     </Pressable>
@@ -38,8 +44,7 @@ const createStyles = (colors: ThemeColors, variant: "primary" | "secondary") =>
       alignItems: "center",
       justifyContent: "center",
       gap: 8,
-      backgroundColor:
-        variant === "primary" ? colors.accent : colors.cardBorder,
+      backgroundColor: variant === "primary" ? colors.accent : colors.textFaint,
       paddingVertical: 14,
       borderRadius: 14,
     },

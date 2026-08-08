@@ -8,10 +8,19 @@ export type OdoEntry = {
   date: string; // ISO string
 };
 
+export type FullTankMethodEntry = {
+  lastFullTankOdo: number;
+  latestOdo: number;
+  littersAdded: number;
+};
+
 export type Vehicle = {
   id: string;
   name: string;
   odo: number; // current odometer reading
+  tripOdo?: number; // optional trip odometer reading
+  gasConsumption?: number; // optional gas consumption value
+  lastFullTankOdo?: number; // optional last full tank odometer reading
   createdAt: string;
   history: OdoEntry[];
 };
@@ -110,6 +119,33 @@ export function useVehicles() {
     [vehicles, persist],
   );
 
+  const computeGasConsumption = useCallback(
+    async (vehicleId: string, formData: FullTankMethodEntry) => {
+      const next = vehicles.map((v) =>
+        v.id === vehicleId
+          ? {
+              ...v,
+              lastFullTankOdo: v.odo,
+              odo: formData.latestOdo,
+              gasConsumption:
+                (formData.lastFullTankOdo - formData.latestOdo) /
+                formData.littersAdded,
+              history: [
+                {
+                  id: makeId(),
+                  odo: formData.latestOdo,
+                  date: new Date().toISOString(),
+                },
+                ...v.history,
+              ],
+            }
+          : v,
+      );
+      await persist(next);
+    },
+    [vehicles, persist],
+  );
+
   const removeVehicle = useCallback(
     async (vehicleId: string) => {
       await persist(vehicles.filter((v) => v.id !== vehicleId));
@@ -128,6 +164,7 @@ export function useVehicles() {
     loading,
     addVehicle,
     updateOdo,
+    computeGasConsumption,
     removeVehicle,
     getVehicle,
   };

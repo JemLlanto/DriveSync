@@ -25,6 +25,13 @@ export default function IndexScreen() {
   const [name, setName] = useState("");
   const [odo, setOdo] = useState("");
 
+  // Fetch vehicles on page mount
+  useFocusEffect(
+    useCallback(() => {
+      fetchVehicles();
+    }, [getVehicles]),
+  );
+
   const closeModal = () => {
     setName("");
     setOdo("");
@@ -37,12 +44,6 @@ export default function IndexScreen() {
       setUserVehicles(response.vehicles);
     }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchVehicles();
-    }, [getVehicles]),
-  );
 
   const handleAddVehicle = async () => {
     const trimmedOdo = odo.trim();
@@ -174,13 +175,6 @@ const createStyles = (colors: ThemeColors) =>
       backgroundColor: colors.background,
       padding: 20,
     },
-    header: {
-      marginBottom: 20,
-      flexDirection: "row",
-      alignItems: "flex-start",
-    },
-    title: { fontSize: 28, fontWeight: "800", color: colors.text },
-    subtitle: { fontSize: 14, color: colors.textMuted, marginTop: 4 },
     sectionLabel: {
       color: colors.textMuted,
       fontSize: 14,

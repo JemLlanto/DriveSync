@@ -166,6 +166,7 @@ export default function VehicleDetailScreen() {
       <View style={styles.container}>
         <Stack.Screen options={{ title: vehicle.name }} />
 
+        {/* CARD FOR ODOMETER, TRIP AND GAS CONSUMPTION */}
         <DataCards
           vehicle={vehicle}
           setModalVisible={setModalVisible}
@@ -185,12 +186,14 @@ export default function VehicleDetailScreen() {
           }
         />
 
+        {/* DELETE BUTTON */}
         <Pressable style={styles.deleteButton} onPress={handleDelete}>
           <Ionicons name="trash-outline" size={16} color={colors.danger} />
           <Text style={styles.deleteButtonText}>Delete Vehicle</Text>
         </Pressable>
       </View>
-      {/* ADDING VEHICLE MODAL */}
+
+      {/* UPDATE ODO MODAL */}
       <UpdateModal
         formData={formData}
         visible={modalVisible}
@@ -211,44 +214,6 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textMuted,
       marginTop: 60,
       textAlign: "center",
-    },
-
-    updateButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 8,
-      backgroundColor: colors.accent,
-      paddingVertical: 13,
-      borderRadius: 12,
-      marginBottom: 24,
-    },
-    updateButtonText: {
-      color: colors.accentText,
-      fontWeight: "700",
-      fontSize: 15,
-    },
-    editRow: {
-      flexDirection: "row",
-      gap: 8,
-      marginBottom: 24,
-      alignItems: "center",
-    },
-    input: {
-      flex: 1,
-      backgroundColor: colors.card,
-      borderRadius: 10,
-      paddingHorizontal: 14,
-      paddingVertical: 12,
-      color: colors.text,
-      borderWidth: 1,
-      borderColor: colors.cardBorder,
-    },
-    saveBtn: { backgroundColor: colors.accent, padding: 12, borderRadius: 10 },
-    cancelBtn: {
-      backgroundColor: colors.cardBorder,
-      padding: 12,
-      borderRadius: 10,
     },
     sectionLabel: {
       color: colors.textMuted,

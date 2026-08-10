@@ -36,6 +36,7 @@ export default function DataCards({
             margin: 15,
           }}
         >
+          {/* HISTORY BUTTON */}
           <Pressable
             style={{
               justifyContent: "center",

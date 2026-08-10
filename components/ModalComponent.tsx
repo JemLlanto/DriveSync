@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -39,6 +40,13 @@ export default function ModalComponent({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.modalOverlay}
       >
+        {/* For closing modal when background is tapped */}
+        <Pressable
+          style={{
+            height: "100%",
+          }}
+          onPress={onClose}
+        />
         <View style={styles.modalCard}>
           {/* MODAL HEADER */}
           <Text style={styles.modalTitle}>{modalHeader}</Text>

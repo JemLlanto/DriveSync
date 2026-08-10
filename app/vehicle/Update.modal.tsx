@@ -92,12 +92,12 @@ export default function UpdateModal({
           {/* Last Full Tank Odometer Reading */}
           <InputValue
             label="Last Full Tank Odometer Reading"
-            name={
+            value={
               formData.lastFullTankOdo
                 ? formatNumber(formData.lastFullTankOdo)
                 : ""
             }
-            setName={(text) => {
+            setValue={(text) => {
               let value = sanitizeNumberInput(text);
               setFormData((prev) => ({
                 ...prev,
@@ -110,8 +110,8 @@ export default function UpdateModal({
           {/* Latest Odometer Reading */}
           <InputValue
             label="Latest Odometer Reading"
-            name={formData.latestOdo ? formatNumber(formData.latestOdo) : ""}
-            setName={(text) => {
+            value={formData.latestOdo ? formatNumber(formData.latestOdo) : ""}
+            setValue={(text) => {
               let value = sanitizeNumberInput(text);
               setFormData((prev) => ({
                 ...prev,
@@ -124,10 +124,10 @@ export default function UpdateModal({
           {/* Litters Added */}
           <InputValue
             label="Litters Added"
-            name={
+            value={
               formData.littersAdded ? formatNumber(formData.littersAdded) : ""
             }
-            setName={(text) => {
+            setValue={(text) => {
               let value = sanitizeNumberInput(text);
               setFormData((prev) => ({
                 ...prev,
@@ -141,8 +141,8 @@ export default function UpdateModal({
       ) : (
         <InputValue
           label="New Odometer Reading"
-          name={formatNumber(formData.latestOdo)}
-          setName={(text) => {
+          value={formatNumber(formData.latestOdo)}
+          setValue={(text) => {
             let value = sanitizeNumberInput(text);
             setFormData((prev) => ({ ...prev, latestOdo: value }));
           }}

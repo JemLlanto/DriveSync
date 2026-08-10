@@ -11,7 +11,7 @@ import { ThemeColors, useTheme } from "../../lib/theme";
 import { useVehicles } from "../../lib/vehicleStore";
 import DataCards from "./DataCards";
 import MaintenanceTracker from "./MaintenanceTracker";
-import UpdateModal from "./UpdateModal";
+import UpdateModal from "./Update.modal";
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -164,7 +164,7 @@ export default function VehicleDetailScreen() {
 
         {/* MAINTENANCE LIST */}
         <Text style={styles.sectionLabel}>Maintenance Tracker</Text>
-        <MaintenanceTracker vehicle={vehicle} />
+        <MaintenanceTracker vehicle={vehicle.maintenance} />
 
         {/* DELETE BUTTON */}
         <Pressable style={styles.deleteButton} onPress={handleDelete}>
@@ -201,21 +201,6 @@ const createStyles = (colors: ThemeColors) =>
       fontWeight: "600",
       marginBottom: 10,
     },
-    maintenanceRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-      backgroundColor: colors.card,
-      padding: 12,
-      borderRadius: 10,
-      marginBottom: 8,
-      borderWidth: 1,
-      borderColor: colors.cardBorder,
-    },
-    maintenanceName: { color: colors.accent, fontWeight: "900", fontSize: 14 },
-    maintenanceMeter: { color: colors.text, fontWeight: "400", flex: 1 },
-    historyDate: { color: colors.textFaint, fontSize: 12 },
-    emptyText: { color: colors.textFaint, fontSize: 13 },
     deleteButton: {
       flexDirection: "row",
       alignItems: "center",

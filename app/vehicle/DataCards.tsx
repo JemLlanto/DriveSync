@@ -2,8 +2,10 @@ import Button from "@/components/Button";
 import { ThemeColors, useTheme } from "@/lib/theme";
 import { Vehicle } from "@/lib/vehicleStore";
 import { formatNumber, roundUp2 } from "@/utils/formatting";
-import { Dispatch, SetStateAction, useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import HistoryModal from "./HistoryModal";
 
 interface DataCardsProps {
   vehicle: Vehicle;
@@ -20,10 +22,30 @@ export default function DataCards({
 }: DataCardsProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const [historyVisible, setHistoryVisible] = useState<boolean>(false);
+
   return (
     <>
       {/* ODO READING */}
       <View style={styles.odoCard}>
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            margin: 15,
+          }}
+        >
+          <Pressable
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={() => setHistoryVisible(true)}
+          >
+            <Ionicons name="time-outline" size={30} color={colors.text} />
+          </Pressable>
+        </View>
         <Text style={styles.odoLabel}>Current Odometer</Text>
         <Text style={styles.odoValue}>{formatNumber(vehicle.odo)}</Text>
         <Text style={styles.odoUnit}>kilometers</Text>
@@ -93,6 +115,13 @@ export default function DataCards({
           </View>
         </View>
       </View>
+
+      {/* HISTORY MODAL */}
+      <HistoryModal
+        data={vehicle.history}
+        visible={historyVisible}
+        setModalVisible={setHistoryVisible}
+      />
     </>
   );
 }
@@ -107,6 +136,7 @@ const createStyles = (colors: ThemeColors) =>
       marginBottom: 16,
       borderWidth: 1,
       borderColor: colors.cardBorder,
+      position: "relative",
     },
     odoLabel: { color: colors.textMuted, fontSize: 13, fontWeight: "600" },
     odoValue: {

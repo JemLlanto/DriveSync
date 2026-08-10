@@ -1,4 +1,3 @@
-import { formatNumber, formatRelativeDate } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Stack,
@@ -7,17 +6,11 @@ import {
   useLocalSearchParams,
 } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ThemeColors, useTheme } from "../../lib/theme";
-import { OdoEntry, useVehicles } from "../../lib/vehicleStore";
+import { useVehicles } from "../../lib/vehicleStore";
 import DataCards from "./DataCards";
+import MaintenanceTracker from "./MaintenanceTracker";
 import UpdateModal from "./UpdateModal";
 
 export default function VehicleDetailScreen() {
@@ -133,33 +126,28 @@ export default function VehicleDetailScreen() {
   };
 
   const resetTripMeter = () => {
-    Alert.alert(
-      "Reset Trip Meter",
-      `Reset the trip meter for "${vehicle.name}"?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Reset",
-          style: "destructive",
-          onPress: async () => {
-            await resetTripMeterOdo(vehicle.id);
-            getVehicle(id);
-          },
-        },
-      ],
-    );
+    vehicle.tripOdo === 0 || !vehicle.tripOdo
+      ? Alert.alert(
+          "Reset Trip Meter",
+          `You can't reset trip meter for "${vehicle.name}" because its currently 0.`,
+          [{ text: "Close", style: "cancel" }],
+        )
+      : Alert.alert(
+          "Reset Trip Meter",
+          `Reset the trip meter for "${vehicle.name}"?`,
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Reset",
+              style: "destructive",
+              onPress: async () => {
+                await resetTripMeterOdo(vehicle.id);
+                getVehicle(id);
+              },
+            },
+          ],
+        );
   };
-
-  const renderHistoryItem = ({ item }: { item: OdoEntry }) => (
-    <View style={styles.historyRow}>
-      <Ionicons name="time-outline" size={16} color={colors.textFaint} />
-      <Text style={styles.historyAction}>
-        {item.action || "Odometer update"}:
-      </Text>
-      <Text style={styles.historyOdo}>{formatNumber(item.odo)} km</Text>
-      <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text>
-    </View>
-  );
 
   return (
     <>
@@ -174,17 +162,9 @@ export default function VehicleDetailScreen() {
           resetTripMeter={resetTripMeter}
         />
 
-        {/* HISTORY */}
-        <Text style={styles.sectionLabel}>History</Text>
-        <FlatList
-          data={vehicle.history}
-          keyExtractor={(item) => item.id}
-          renderItem={renderHistoryItem}
-          contentContainerStyle={{ paddingBottom: 12 }}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No history yet.</Text>
-          }
-        />
+        {/* MAINTENANCE LIST */}
+        <Text style={styles.sectionLabel}>Maintenance Tracker</Text>
+        <MaintenanceTracker vehicle={vehicle} />
 
         {/* DELETE BUTTON */}
         <Pressable style={styles.deleteButton} onPress={handleDelete}>
@@ -221,7 +201,7 @@ const createStyles = (colors: ThemeColors) =>
       fontWeight: "600",
       marginBottom: 10,
     },
-    historyRow: {
+    maintenanceRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: 10,
@@ -232,8 +212,8 @@ const createStyles = (colors: ThemeColors) =>
       borderWidth: 1,
       borderColor: colors.cardBorder,
     },
-    historyAction: { color: colors.accent, fontWeight: "600" },
-    historyOdo: { color: colors.text, fontWeight: "600", flex: 1 },
+    maintenanceName: { color: colors.accent, fontWeight: "900", fontSize: 14 },
+    maintenanceMeter: { color: colors.text, fontWeight: "400", flex: 1 },
     historyDate: { color: colors.textFaint, fontSize: 12 },
     emptyText: { color: colors.textFaint, fontSize: 13 },
     deleteButton: {

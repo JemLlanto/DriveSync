@@ -4,8 +4,8 @@ import { StyleSheet, Text, TextInput } from "react-native";
 
 interface InputValueProps {
   label?: string;
-  name: string;
-  setName: (value: string) => void;
+  value: string;
+  setValue: (value: string) => void;
   placeholder: string;
   keyboardType?:
     | "default"
@@ -17,8 +17,8 @@ interface InputValueProps {
 
 export default function InputValue({
   label,
-  name,
-  setName,
+  value,
+  setValue,
   placeholder,
   keyboardType = "default",
 }: InputValueProps) {
@@ -28,8 +28,8 @@ export default function InputValue({
     <>
       <Text style={styles.inputLabel}>{label}</Text>
       <TextInput
-        value={name}
-        onChangeText={setName}
+        value={value}
+        onChangeText={setValue}
         placeholder={placeholder || ""}
         placeholderTextColor={colors.textFaint}
         keyboardType={keyboardType}

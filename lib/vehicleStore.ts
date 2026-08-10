@@ -15,6 +15,13 @@ export type FullTankMethodEntry = {
   littersAdded: number;
 };
 
+export type MaintenanceEntry = {
+  id: string;
+  name: string;
+  currentTrip: number;
+  tripLimit: number;
+};
+
 export type Vehicle = {
   id: string;
   name: string;
@@ -23,6 +30,8 @@ export type Vehicle = {
   gasConsumption?: number; // optional gas consumption value
   lastFullTankOdo?: number; // optional last full tank odometer reading
   createdAt: string;
+  updatedAt: string;
+  maintenance?: MaintenanceEntry[];
   history: OdoEntry[];
 };
 
@@ -101,6 +110,7 @@ export function useVehicles() {
         name: name.trim() || "Unnamed Vehicle",
         odo,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         history: [{ id: makeId(), odo, date: new Date().toISOString() }],
       };
       await persist([newVehicle, ...vehicles]);
@@ -116,6 +126,7 @@ export function useVehicles() {
         v.id === vehicleId
           ? {
               ...v,
+              updatedAt: new Date().toISOString(),
               tripOdo: (v.tripOdo || 0) + (newOdo - v.odo),
               odo: newOdo,
               history: [
@@ -146,6 +157,7 @@ export function useVehicles() {
         v.id === vehicleId
           ? {
               ...v,
+              updatedAt: new Date().toISOString(),
               tripOdo: (v.tripOdo || 0) + (formData.latestOdo - v.odo),
               lastFullTankOdo: formData.latestOdo,
               odo: formData.latestOdo,
@@ -174,6 +186,7 @@ export function useVehicles() {
         v.id === vehicleId
           ? {
               ...v,
+              updatedAt: new Date().toISOString(),
               tripOdo: 0,
               history: [
                 {

@@ -52,7 +52,7 @@ export default function ModalComponent({
           <Text style={styles.modalTitle}>{modalHeader}</Text>
 
           {/* MODAL BODY */}
-          {children}
+          <View>{children}</View>
 
           {/* MODAL FOOTER */}
           {modalFooter && (
@@ -72,6 +72,7 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: "flex-end",
     },
     modalCard: {
+      justifyContent: "space-between",
       backgroundColor: colors.card,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,

@@ -44,7 +44,7 @@ export default function DataCards({
             }}
             onPress={() => setHistoryVisible(true)}
           >
-            <Ionicons name="time-outline" size={30} color={colors.text} />
+            <Ionicons name="time-outline" size={25} color={colors.text} />
           </Pressable>
         </View>
         <Text style={styles.odoLabel}>Current Odometer</Text>

@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
-  Stack,
   router,
+  Stack,
   useFocusEffect,
   useLocalSearchParams,
 } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ThemeColors, useTheme } from "../../lib/theme";
-import { useVehicles } from "../../lib/vehicleStore";
+import { emptyVehicle, useVehicles, Vehicle } from "../../lib/vehicleStore";
 import DataCards from "./DataCards";
 import MaintenanceTracker from "./MaintenanceTracker";
 import UpdateModal from "./Update.modal";
@@ -23,10 +23,13 @@ export default function VehicleDetailScreen() {
     resetTripMeterOdo,
     loading,
   } = useVehicles();
-  const vehicle = getVehicle(id);
+  const currentVehicle = getVehicle(id);
+  const [vehicle, setVehicle] = useState<Vehicle>(
+    currentVehicle || emptyVehicle,
+  );
+
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [editing, setEditing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [formData, setFormData] = useState({
     lastFullTankOdo: "",
@@ -34,13 +37,20 @@ export default function VehicleDetailScreen() {
     littersAdded: "",
   });
   const [FullTankMethod, setFullTankMethod] = useState<boolean>(false);
+
   useFocusEffect(
     useCallback(() => {
+      const currentVehicle = getVehicle(id);
+      // console.log("currentVehicle: ", currentVehicle, id);
+
+      if (!currentVehicle) return;
+
+      setVehicle(currentVehicle);
       setFormData((prev) => ({
         ...prev,
-        lastFullTankOdo: String(vehicle?.lastFullTankOdo) || "",
+        lastFullTankOdo: String(currentVehicle?.lastFullTankOdo) ?? "",
       }));
-    }, [vehicle]),
+    }, [id, loading]),
   );
 
   if (loading) {
@@ -84,7 +94,6 @@ export default function VehicleDetailScreen() {
                 latestOdo: "",
                 littersAdded: "",
               });
-              setEditing(false);
               setModalVisible(false);
               setFullTankMethod(false);
             },
@@ -102,7 +111,6 @@ export default function VehicleDetailScreen() {
       latestOdo: "",
       littersAdded: "",
     });
-    setEditing(false);
     setModalVisible(false);
     setFullTankMethod(false);
   };
@@ -164,7 +172,7 @@ export default function VehicleDetailScreen() {
 
         {/* MAINTENANCE LIST */}
         <Text style={styles.sectionLabel}>Maintenance Tracker</Text>
-        <MaintenanceTracker vehicle={vehicle.maintenance} />
+        <MaintenanceTracker vehicle={vehicle} setVehicle={setVehicle} />
 
         {/* DELETE BUTTON */}
         <Pressable style={styles.deleteButton} onPress={handleDelete}>

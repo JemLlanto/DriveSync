@@ -35,6 +35,15 @@ export type Vehicle = {
   history: OdoEntry[];
 };
 
+export const emptyVehicle = {
+  id: makeId(),
+  name: "",
+  odo: 0,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  history: [{ id: makeId(), odo: 0, date: new Date().toISOString() }],
+};
+
 const STORAGE_KEY = "@drivesync/vehicles";
 
 async function loadVehicles(): Promise<Vehicle[]> {
@@ -85,9 +94,14 @@ export function useVehicles() {
   }, []);
 
   const persist = useCallback(async (next: Vehicle[]) => {
-    console.log("Persisting vehicles:", next);
-    setVehicles(next);
-    await saveVehicles(next);
+    try {
+      console.log("Persisting vehicles:", next);
+      setVehicles(next);
+      await saveVehicles(next);
+      return { success: true };
+    } catch (err) {
+      console.error("Error Occured: ", err);
+    }
   }, []);
 
   const addVehicle = useCallback(
@@ -212,6 +226,38 @@ export function useVehicles() {
     [vehicles, persist],
   );
 
+  const addMaintenanceService = useCallback(
+    async (vehicleId: string, data: any) => {
+      const formData: MaintenanceEntry = data as MaintenanceEntry;
+      const newMaintenance = {
+        id: makeId(),
+        name: formData.name,
+        tripLimit: formData.tripLimit,
+        currentTrip: 0,
+      };
+      const next = vehicles.map((v) =>
+        v.id === vehicleId
+          ? {
+              ...v,
+              maintenance: [newMaintenance, ...(v.maintenance || [])],
+              history: [
+                {
+                  id: makeId(),
+                  odo: v.odo,
+                  action: "New Maintenance Added",
+                  date: new Date().toISOString(),
+                },
+                ...v.history,
+              ],
+            }
+          : v,
+      );
+      const response = await persist(next);
+      return { success: response?.success, data: newMaintenance };
+    },
+    [vehicles, persist],
+  );
+
   const getVehicle = useCallback(
     (vehicleId: string) => vehicles.find((v) => v.id === vehicleId),
     [vehicles],
@@ -227,5 +273,6 @@ export function useVehicles() {
     removeVehicle,
     resetTripMeterOdo,
     getVehicle,
+    addMaintenanceService,
   };
 }

@@ -17,7 +17,7 @@ import { ThemeColors, useTheme } from "../lib/theme";
 import { useVehicles, Vehicle } from "../lib/vehicleStore";
 
 export default function IndexScreen() {
-  const { getVehicles, vehicles, loading, addVehicle } = useVehicles();
+  const { getVehicles, loading, addVehicle } = useVehicles();
   const [userVehicles, setUserVehicles] = useState<Vehicle[]>([]);
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -147,16 +147,16 @@ export default function IndexScreen() {
       >
         <InputValue
           label="Vehicle name (Model, Make, Nickname, etc.)"
-          name={name}
-          setName={setName}
+          value={name}
+          setValue={setName}
           placeholder="e.g. My Car"
           keyboardType="default"
         />
 
         <InputValue
           label="Current odometer (km)"
-          name={formatNumber(odo)}
-          setName={(text) => {
+          value={formatNumber(odo)}
+          setValue={(text) => {
             let value = sanitizeNumberInput(text);
             setOdo(value);
           }}

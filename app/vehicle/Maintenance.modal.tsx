@@ -1,19 +1,22 @@
 import Button from "@/components/Button";
 import InputValue from "@/components/InputValue";
 import ModalComponent from "@/components/ModalComponent";
+import { useVehicles, Vehicle } from "@/lib/vehicleStore";
 import { formatNumber, sanitizeNumberInput } from "@/utils/formatting";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { ComboBox } from "./ComboBox.modal";
+import ComboBox from "./ComboBox.modal";
 
 export interface maintenanceFormDataProps {
   name: string;
   currentTrip: string;
-  tripLimit: string;
+  tripLimit?: string;
 }
 
 interface UpdateModalProps {
+  vehicleId: string;
   visible: boolean;
+  setVehicle: Dispatch<SetStateAction<Vehicle>>;
   setModalVisible: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -29,17 +32,40 @@ const COMMON_MAINTENANCE_TYPES = [
 ];
 
 export default function MaintenanceModal({
+  vehicleId,
   visible,
+  setVehicle,
   setModalVisible,
 }: UpdateModalProps) {
+  const { addMaintenanceService } = useVehicles();
   const styles = useMemo(() => createStyles(), []);
   const [formData, setFormData] = useState<maintenanceFormDataProps>({
     name: "",
     currentTrip: "",
-    tripLimit: "",
   });
 
-  const handleAddMaintenance = () => {};
+  const handleAddMaintenance = async () => {
+    try {
+      const response = await addMaintenanceService(vehicleId, formData);
+      if (response.success) {
+        setModalVisible(false);
+        setVehicle((prev) => ({
+          ...prev,
+          maintenance: [
+            {
+              id: response.data.id,
+              name: response.data.name,
+              tripLimit: response.data.tripLimit,
+              currentTrip: 0,
+            },
+            ...(prev.maintenance ?? []),
+          ],
+        }));
+      }
+    } catch (err) {
+      console.error("Error Occured: ", err);
+    }
+  };
 
   return (
     <ModalComponent

@@ -22,7 +22,7 @@ type ComboBoxProps = {
   placeholder: string;
 };
 
-export function ComboBox({
+export default function ComboBox({
   options,
   value,
   setFormData,

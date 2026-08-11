@@ -135,33 +135,37 @@ export function useVehicles() {
 
   const updateOdo = useCallback(
     async (vehicleId: string, newOdo: number) => {
-      // console.log("Updating odometer for vehicle:", vehicleId, newOdo);
+      let newData = {};
       const next = vehicles.map((v) => {
+        // Preparing new data
         const addedOdo = newOdo - v.odo;
-
+        newData = {
+          updatedAt: new Date().toISOString(),
+          tripOdo: (v.tripOdo || 0) + addedOdo,
+          odo: newOdo,
+          maintenance: v.maintenance?.map((m) => ({
+            ...m,
+            currentTrip: m.currentTrip + addedOdo,
+          })),
+          history: [
+            {
+              id: makeId(),
+              odo: newOdo,
+              action: "Odometer Update",
+              date: new Date().toISOString(),
+            },
+            ...v.history,
+          ],
+        };
         return v.id === vehicleId
           ? {
               ...v,
-              updatedAt: new Date().toISOString(),
-              tripOdo: (v.tripOdo || 0) + addedOdo,
-              odo: newOdo,
-              maintenance: v.maintenance?.map((m) => ({
-                ...m,
-                currentTrip: m.currentTrip + addedOdo,
-              })),
-              history: [
-                {
-                  id: makeId(),
-                  odo: newOdo,
-                  action: "Odometer Update",
-                  date: new Date().toISOString(),
-                },
-                ...v.history,
-              ],
+              ...newData,
             }
           : v;
       });
       await persist(next);
+      return { success: true, data: newData };
     },
     [vehicles, persist],
   );
@@ -172,40 +176,42 @@ export function useVehicles() {
       let consumption =
         (formData.latestOdo - formData.lastFullTankOdo) / formData.littersAdded;
 
-      console.log(
-        "Computing gas consumption for vehicle:",
-        `${consumption} km/liters`,
-        vehicleId,
-        formData,
-      );
+      let newData = {};
+
       const next = vehicles.map((v) => {
         const addedOdo = formData.latestOdo - v.odo;
+        console.log("addedOdo:", addedOdo);
+
+        newData = {
+          updatedAt: new Date().toISOString(),
+          tripOdo: (v.tripOdo || 0) + addedOdo,
+          lastFullTankOdo: formData.latestOdo,
+          odo: formData.latestOdo,
+          gasConsumption: consumption,
+          maintenance: v.maintenance?.map((m) => ({
+            ...m,
+            currentTrip: m.currentTrip + addedOdo,
+          })),
+          history: [
+            {
+              id: makeId(),
+              odo: formData.latestOdo,
+              action: "Full tank method",
+              date: new Date().toISOString(),
+            },
+            ...v.history,
+          ],
+        };
 
         return v.id === vehicleId
           ? {
               ...v,
-              updatedAt: new Date().toISOString(),
-              tripOdo: (v.tripOdo || 0) + addedOdo,
-              lastFullTankOdo: formData.latestOdo,
-              odo: formData.latestOdo,
-              gasConsumption: consumption,
-              maintenance: v.maintenance?.map((m) => ({
-                ...m,
-                currentTrip: m.currentTrip + addedOdo,
-              })),
-              history: [
-                {
-                  id: makeId(),
-                  odo: formData.latestOdo,
-                  action: "Full tank method",
-                  date: new Date().toISOString(),
-                },
-                ...v.history,
-              ],
+              ...newData,
             }
           : v;
       });
       await persist(next);
+      return { success: true, data: newData };
     },
     [vehicles, persist],
   );

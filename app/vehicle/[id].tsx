@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
 import {
   router,
@@ -48,7 +49,7 @@ export default function VehicleDetailScreen() {
       setVehicle(currentVehicle);
       setFormData((prev) => ({
         ...prev,
-        lastFullTankOdo: String(currentVehicle?.lastFullTankOdo) ?? "",
+        lastFullTankOdo: String(currentVehicle?.odo) ?? "",
       }));
     }, [id, loading]),
   );
@@ -70,49 +71,42 @@ export default function VehicleDetailScreen() {
   }
 
   const handleUpdateOdo = async () => {
-    const trimmed = String(formData.latestOdo).trim();
-    const value = Number(trimmed);
+    try {
+      const trimmed = String(formData.latestOdo).trim();
+      const value = Number(trimmed);
 
-    if (!trimmed || Number.isNaN(value) || value < 0) {
-      Alert.alert("Invalid odometer", "Please enter a valid number.");
-      return;
-    }
-    if (value < vehicle.odo) {
-      Alert.alert(
-        "Lower than current",
-        `New reading (${value}) is less than the current odometer (${vehicle.odo}). Continue anyway?`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Continue",
-            onPress: async () => {
-              FullTankMethod
-                ? await computeGasConsumption(vehicle.id, formData)
-                : await updateOdo(vehicle.id, value);
-              setFormData({
-                lastFullTankOdo: formData.latestOdo,
-                latestOdo: "",
-                littersAdded: "",
-              });
-              setModalVisible(false);
-              setFullTankMethod(false);
-            },
-          },
-        ],
-      );
-      return;
-    }
+      if (!trimmed || Number.isNaN(value) || value < 0) {
+        Alert.alert("Invalid odometer", "Please enter a valid number.");
+        return;
+      }
+      if (value < vehicle.odo) {
+        Alert.alert(
+          "Error: Lower than current",
+          `New reading "${formatNumber(value)}km" can not be less than the current odometer "${formatNumber(vehicle.odo)}km".`,
+          [{ text: "Cancel", style: "cancel" }],
+        );
+        return;
+      }
 
-    FullTankMethod
-      ? await computeGasConsumption(vehicle.id, formData)
-      : await updateOdo(vehicle.id, value);
-    setFormData({
-      lastFullTankOdo: formData.latestOdo,
-      latestOdo: "",
-      littersAdded: "",
-    });
-    setModalVisible(false);
-    setFullTankMethod(false);
+      const response = FullTankMethod
+        ? await computeGasConsumption(vehicle.id, formData)
+        : await updateOdo(vehicle.id, value);
+      if (response.success) {
+        setVehicle((prev) => ({
+          ...prev,
+          ...response.data,
+        }));
+        setFormData({
+          lastFullTankOdo: formData.latestOdo,
+          latestOdo: "",
+          littersAdded: "",
+        });
+        setModalVisible(false);
+        setFullTankMethod(false);
+      }
+    } catch (err) {
+      console.error("Error occured: ", err);
+    }
   };
 
   const handleDelete = () => {

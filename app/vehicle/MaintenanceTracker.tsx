@@ -23,17 +23,34 @@ export default function MaintenanceTracker({
     setAddModal(true);
   };
 
-  const renderMaintenanceItem = ({ item }: { item: MaintenanceEntry }) => (
-    <View style={styles.maintenanceRow}>
-      <Text style={styles.maintenanceName}>{item.name}:</Text>
-      <Text style={styles.maintenanceMeter}>
-        {formatNumber(item.tripLimit)}
-      </Text>
-      {/* Progress Bar */}
-      <View></View>
-      {/* <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text> */}
-    </View>
-  );
+  const renderMaintenanceItem = ({ item }: { item: MaintenanceEntry }) => {
+    const dueOdo = item.tripLimit;
+    const currentTrip = item.currentTrip;
+    const remainingTrip = dueOdo - currentTrip;
+    const rawProgress = remainingTrip / dueOdo;
+    const progress = 100 - Math.min(Math.max(rawProgress, 0), 1) * 100; // clamp 0-1
+
+    return (
+      <View style={styles.maintenanceRow}>
+        <Text style={styles.maintenanceName}>{item.name}:</Text>
+        <Text style={styles.maintenanceMeter}>
+          Remain Trip: {formatNumber(remainingTrip)}
+        </Text>
+
+        {/* Progress Bar */}
+        <View style={styles.progressBarTrack}>
+          <View
+            style={[
+              styles.progressBarFill,
+              { width: `${progress}%` },
+              progress > 90 && styles.progressBarFillOverdue,
+            ]}
+          />
+        </View>
+        {/* <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text> */}
+      </View>
+    );
+  };
   return (
     <>
       <Button
@@ -63,8 +80,6 @@ export default function MaintenanceTracker({
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     maintenanceRow: {
-      flexDirection: "row",
-      alignItems: "center",
       gap: 10,
       backgroundColor: colors.card,
       padding: 12,
@@ -81,5 +96,20 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.textFaint,
       fontSize: 13,
       padding: 10,
+    },
+    progressBarTrack: {
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.textMuted, // or any subtle track color
+      overflow: "hidden",
+      marginVertical: 6,
+    },
+    progressBarFill: {
+      height: "100%",
+      borderRadius: 4,
+      backgroundColor: colors.success, // or colors.tint / colors.accent
+    },
+    progressBarFillOverdue: {
+      backgroundColor: colors.danger ?? "#e74c3c", // fallback if you don't have an error color token
     },
   });

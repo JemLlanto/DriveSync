@@ -136,20 +136,31 @@ export function useVehicles() {
   const updateOdo = useCallback(
     async (vehicleId: string, newOdo: number) => {
       // console.log("Updating odometer for vehicle:", vehicleId, newOdo);
-      const next = vehicles.map((v) =>
-        v.id === vehicleId
+      const next = vehicles.map((v) => {
+        const addedOdo = newOdo - v.odo;
+
+        return v.id === vehicleId
           ? {
               ...v,
               updatedAt: new Date().toISOString(),
-              tripOdo: (v.tripOdo || 0) + (newOdo - v.odo),
+              tripOdo: (v.tripOdo || 0) + addedOdo,
               odo: newOdo,
+              maintenance: v.maintenance?.map((m) => ({
+                ...m,
+                currentTrip: m.currentTrip + addedOdo,
+              })),
               history: [
-                { id: makeId(), odo: newOdo, date: new Date().toISOString() },
+                {
+                  id: makeId(),
+                  odo: newOdo,
+                  action: "Odometer Update",
+                  date: new Date().toISOString(),
+                },
                 ...v.history,
               ],
             }
-          : v,
-      );
+          : v;
+      });
       await persist(next);
     },
     [vehicles, persist],
@@ -167,15 +178,21 @@ export function useVehicles() {
         vehicleId,
         formData,
       );
-      const next = vehicles.map((v) =>
-        v.id === vehicleId
+      const next = vehicles.map((v) => {
+        const addedOdo = formData.latestOdo - v.odo;
+
+        return v.id === vehicleId
           ? {
               ...v,
               updatedAt: new Date().toISOString(),
-              tripOdo: (v.tripOdo || 0) + (formData.latestOdo - v.odo),
+              tripOdo: (v.tripOdo || 0) + addedOdo,
               lastFullTankOdo: formData.latestOdo,
               odo: formData.latestOdo,
               gasConsumption: consumption,
+              maintenance: v.maintenance?.map((m) => ({
+                ...m,
+                currentTrip: m.currentTrip + addedOdo,
+              })),
               history: [
                 {
                   id: makeId(),
@@ -186,8 +203,8 @@ export function useVehicles() {
                 ...v.history,
               ],
             }
-          : v,
-      );
+          : v;
+      });
       await persist(next);
     },
     [vehicles, persist],

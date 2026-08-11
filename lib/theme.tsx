@@ -21,6 +21,7 @@ export type ThemeColors = {
   accent: string;
   accentText: string;
   danger: string;
+  success: string;
 };
 
 const darkColors: ThemeColors = {
@@ -33,6 +34,7 @@ const darkColors: ThemeColors = {
   accent: "#38BDF8",
   accentText: "#0B1220",
   danger: "#F87171",
+  success: "#24aa1a",
 };
 
 const lightColors: ThemeColors = {
@@ -45,6 +47,7 @@ const lightColors: ThemeColors = {
   accent: "#0284C7",
   accentText: "#FFFFFF",
   danger: "#DC2626",
+  success: "#24aa1a",
 };
 
 const STORAGE_KEY = "@drivesync/theme";

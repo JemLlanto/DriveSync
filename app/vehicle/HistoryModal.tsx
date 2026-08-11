@@ -22,13 +22,15 @@ export default function HistoryModal({
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const renderHistoryItem = ({ item }: { item: OdoEntry }) => (
-    <View style={styles.historyRow}>
-      <Ionicons name="time-outline" size={16} color={colors.textFaint} />
+    <View style={styles.historyContainer}>
       <Text style={styles.historyAction}>
         {item.action || "Odometer update"}:
       </Text>
-      <Text style={styles.historyOdo}>{formatNumber(item.odo)} km</Text>
-      <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+        <Ionicons name="analytics-outline" size={17} color={colors.textFaint} />
+        <Text style={styles.historyOdo}>{formatNumber(item.odo)} km</Text>
+        <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text>
+      </View>
     </View>
   );
 
@@ -53,15 +55,17 @@ export default function HistoryModal({
         </>
       }
     >
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        renderItem={renderHistoryItem}
-        contentContainerStyle={{ paddingBottom: 12 }}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No history yet.</Text>
-        }
-      />
+      <View style={{ maxHeight: 350 }}>
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id}
+          renderItem={renderHistoryItem}
+          contentContainerStyle={{ paddingBottom: 12 }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No history yet.</Text>
+          }
+        />
+      </View>
     </ModalComponent>
   );
 }
@@ -70,10 +74,8 @@ const createStyles = (colors: ThemeColors) =>
     buttonContainer: {
       flex: 1,
     },
-    historyRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
+    historyContainer: {
+      gap: 5,
       backgroundColor: colors.card,
       padding: 12,
       borderRadius: 10,
@@ -82,7 +84,12 @@ const createStyles = (colors: ThemeColors) =>
       borderColor: colors.cardBorder,
     },
     historyAction: { color: colors.accent, fontWeight: "600" },
-    historyOdo: { color: colors.text, fontWeight: "600", flex: 1 },
-    historyDate: { color: colors.textFaint, fontSize: 12 },
+    historyOdo: {
+      color: colors.text,
+      fontWeight: "600",
+      flex: 1,
+      fontSize: 17,
+    },
+    historyDate: { color: colors.textFaint, textAlign: "right", fontSize: 12 },
     emptyText: { color: colors.textFaint, fontSize: 13 },
   });

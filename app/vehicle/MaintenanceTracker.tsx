@@ -34,7 +34,13 @@ export default function MaintenanceTracker({
       <View style={styles.maintenanceRow}>
         <Text style={styles.maintenanceName}>{item.name}:</Text>
         <Text style={styles.maintenanceMeter}>
-          Remain Trip: {formatNumber(remainingTrip)}
+          {remainingTrip < 0 ? (
+            <>Maintenance Overdue: {formatNumber(remainingTrip * -1)} km</>
+          ) : (
+            <>
+              Remain Trip: {formatNumber(remainingTrip)}/{item.tripLimit} km
+            </>
+          )}
         </Text>
 
         {/* Progress Bar */}

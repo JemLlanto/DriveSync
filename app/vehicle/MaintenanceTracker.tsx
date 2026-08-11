@@ -33,25 +33,27 @@ export default function MaintenanceTracker({
     return (
       <View style={styles.maintenanceRow}>
         <Text style={styles.maintenanceName}>{item.name}:</Text>
-        <Text style={styles.maintenanceMeter}>
-          {remainingTrip < 0 ? (
-            <>Maintenance Overdue: {formatNumber(remainingTrip * -1)} km</>
-          ) : (
-            <>
-              Remain Trip: {formatNumber(remainingTrip)}/{item.tripLimit} km
-            </>
-          )}
-        </Text>
+        <View>
+          <Text style={styles.maintenanceMeter}>
+            {remainingTrip < 0 ? (
+              <>Maintenance Overdue: {formatNumber(remainingTrip * -1)} km</>
+            ) : (
+              <>
+                Remain Trip: {formatNumber(remainingTrip)}/{item.tripLimit} km
+              </>
+            )}
+          </Text>
 
-        {/* Progress Bar */}
-        <View style={styles.progressBarTrack}>
-          <View
-            style={[
-              styles.progressBarFill,
-              { width: `${progress}%` },
-              progress > 90 && styles.progressBarFillOverdue,
-            ]}
-          />
+          {/* Progress Bar */}
+          <View style={styles.progressBarTrack}>
+            <View
+              style={[
+                styles.progressBarFill,
+                { width: `${progress}%` },
+                progress > 90 && styles.progressBarFillOverdue,
+              ]}
+            />
+          </View>
         </View>
         {/* <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text> */}
       </View>
@@ -59,20 +61,27 @@ export default function MaintenanceTracker({
   };
   return (
     <>
-      <Button
-        icon="construct-outline"
-        buttonText="Add Maintenance Service"
-        onPress={openModal}
-      />
-      <FlatList
-        data={vehicle?.maintenance}
-        keyExtractor={(item) => item.id}
-        renderItem={renderMaintenanceItem}
-        contentContainerStyle={{ paddingBottom: 12 }}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No maintenances yet.</Text>
-        }
-      />
+      <View
+        style={{
+          gap: 10,
+        }}
+      >
+        <Button
+          icon="construct-outline"
+          buttonText="Add Maintenance Service"
+          onPress={openModal}
+        />
+        <FlatList
+          data={vehicle?.maintenance}
+          keyExtractor={(item) => item.id}
+          renderItem={renderMaintenanceItem}
+          contentContainerStyle={{ paddingBottom: 12 }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No maintenances yet.</Text>
+          }
+        />
+      </View>
+
       <MaintenanceModal
         vehicleId={vehicle.id}
         setVehicle={setVehicle}
@@ -86,6 +95,7 @@ export default function MaintenanceTracker({
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     maintenanceRow: {
+      position: "relative",
       gap: 10,
       backgroundColor: colors.card,
       padding: 12,
@@ -94,7 +104,7 @@ const createStyles = (colors: ThemeColors) =>
       borderWidth: 1,
       borderColor: colors.cardBorder,
     },
-    maintenanceName: { color: colors.accent, fontWeight: "900", fontSize: 14 },
+    maintenanceName: { color: colors.accent, fontWeight: "900", fontSize: 16 },
     maintenanceMeter: { color: colors.text, fontWeight: "400", flex: 1 },
     historyDate: { color: colors.textFaint, fontSize: 12 },
     emptyText: {

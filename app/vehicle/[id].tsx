@@ -21,7 +21,6 @@ export default function VehicleDetailScreen() {
     updateOdo,
     computeGasConsumption,
     removeVehicle,
-    resetTripMeterOdo,
     loading,
   } = useVehicles();
   const currentVehicle = getVehicle(id);
@@ -127,30 +126,6 @@ export default function VehicleDetailScreen() {
     );
   };
 
-  const resetTripMeter = () => {
-    vehicle.tripOdo === 0 || !vehicle.tripOdo
-      ? Alert.alert(
-          "Reset Trip Meter",
-          `You can't reset trip meter for "${vehicle.name}" because its currently 0.`,
-          [{ text: "Close", style: "cancel" }],
-        )
-      : Alert.alert(
-          "Reset Trip Meter",
-          `Reset the trip meter for "${vehicle.name}"?`,
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Reset",
-              style: "destructive",
-              onPress: async () => {
-                await resetTripMeterOdo(vehicle.id);
-                getVehicle(id);
-              },
-            },
-          ],
-        );
-  };
-
   return (
     <>
       <View style={styles.container}>
@@ -159,14 +134,16 @@ export default function VehicleDetailScreen() {
         {/* CARD FOR ODOMETER, TRIP AND GAS CONSUMPTION */}
         <DataCards
           vehicle={vehicle}
+          setVehicle={setVehicle}
           setModalVisible={setModalVisible}
           setFullTankMethod={setFullTankMethod}
-          resetTripMeter={resetTripMeter}
         />
 
         {/* MAINTENANCE LIST */}
-        <Text style={styles.sectionLabel}>Maintenance Tracker</Text>
-        <MaintenanceTracker vehicle={vehicle} setVehicle={setVehicle} />
+        <View style={{ flex: 1, minHeight: 0 }}>
+          <Text style={styles.sectionLabel}>Maintenance Tracker</Text>
+          <MaintenanceTracker vehicle={vehicle} setVehicle={setVehicle} />
+        </View>
 
         {/* DELETE BUTTON */}
         <Pressable style={styles.deleteButton} onPress={handleDelete}>
@@ -191,7 +168,11 @@ export default function VehicleDetailScreen() {
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background, padding: 20 },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      padding: 20,
+    },
     loadingText: {
       color: colors.textMuted,
       marginTop: 60,

@@ -142,17 +142,21 @@ export function useVehicles() {
 
   const updateOdo = useCallback(
     async (vehicleId: string, newOdo: number) => {
-      let newData = {};
+      let newData: Partial<Vehicle> | null = null;
+
       const next = vehicles.map((v) => {
-        // Preparing new data
+        if (v.id !== vehicleId) return v;
+
         const addedOdo = newOdo - v.odo;
-        newData = {
+        console.log("addedOdo: ", addedOdo);
+
+        const updated: Partial<Vehicle> = {
           updatedAt: new Date().toISOString(),
           tripOdo: (v.tripOdo || 0) + addedOdo,
           odo: newOdo,
           maintenance: v.maintenance?.map((m) => ({
             ...m,
-            currentTrip: m.currentTrip ?? 0 + addedOdo,
+            currentTrip: (m.currentTrip ?? 0) + addedOdo,
           })),
           history: [
             {
@@ -164,13 +168,18 @@ export function useVehicles() {
             ...v.history,
           ],
         };
-        return v.id === vehicleId
-          ? {
-              ...v,
-              ...newData,
-            }
-          : v;
+
+        newData = updated;
+        console.log("newData: ", newData);
+
+        return { ...v, ...updated };
       });
+
+      if (!newData) {
+        console.warn(`updateOdo: no vehicle found with id ${vehicleId}`);
+        return { success: false, data: null };
+      }
+
       await persist(next);
       return { success: true, data: newData };
     },
@@ -241,6 +250,7 @@ export function useVehicles() {
                 },
                 ...v.history,
               ],
+              maintenance: [...(v.maintenance ?? [])],
             }
           : v,
       );

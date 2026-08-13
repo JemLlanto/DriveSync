@@ -6,7 +6,7 @@ import {
   useFocusEffect,
   useLocalSearchParams,
 } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ThemeColors, useTheme } from "../../lib/theme";
 import { emptyVehicle, useVehicles, Vehicle } from "../../lib/vehicleStore";
@@ -37,6 +37,10 @@ export default function VehicleDetailScreen() {
     littersAdded: "",
   });
   const [FullTankMethod, setFullTankMethod] = useState<boolean>(false);
+
+  useEffect(() => {
+    console.log("[id] usetate vehicle: ", vehicle);
+  }, [vehicle]);
 
   useFocusEffect(
     useCallback(() => {
@@ -91,6 +95,8 @@ export default function VehicleDetailScreen() {
         ? await computeGasConsumption(vehicle.id, formData)
         : await updateOdo(vehicle.id, value);
       if (response.success) {
+        // console.log("New Data: ", response.data);
+
         setVehicle((prev) => ({
           ...prev,
           ...response.data,
@@ -118,8 +124,10 @@ export default function VehicleDetailScreen() {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            await removeVehicle(vehicle.id);
-            router.back();
+            const response = await removeVehicle(vehicle.id);
+            if (response.success) {
+              router.back();
+            }
           },
         },
       ],

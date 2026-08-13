@@ -2,6 +2,7 @@ import Button from "@/components/Button";
 import { ThemeColors, useTheme } from "@/lib/theme";
 import { MaintenanceEntry, Vehicle } from "@/lib/vehicleStore";
 import { formatNumber } from "@/utils/formatting";
+import { Ionicons } from "@expo/vector-icons";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import MaintenanceModal from "./Maintenance.modal";
@@ -23,16 +24,55 @@ export default function MaintenanceTracker({
     setAddModal(true);
   };
 
-  const renderMaintenanceItem = ({ item }: { item: MaintenanceEntry }) => {
+  // Helper — same math as in renderMaintenanceItem, extracted so both places stay in sync
+  const getProgress = (item: MaintenanceEntry) => {
     const dueOdo = item.tripLimit;
-    const currentTrip = item.currentTrip;
-    const remainingTrip = dueOdo - currentTrip;
+    const remainingTrip = dueOdo - item.currentTrip;
     const rawProgress = remainingTrip / dueOdo;
-    const progress = 100 - Math.min(Math.max(rawProgress, 0), 1) * 100; // clamp 0-1
+    return 100 - Math.min(Math.max(rawProgress, 0), 1) * 100;
+  };
+
+  const sortedMaintenance = useMemo(() => {
+    if (!vehicle?.maintenance) return [];
+    // highest progress % (closest to due / most overdue) first
+    return [...vehicle.maintenance].sort(
+      (a, b) => getProgress(b) - getProgress(a),
+    );
+  }, [vehicle?.maintenance]);
+
+  const renderMaintenanceStatus = (progress: number) => {
+    return <View></View>;
+  };
+
+  const renderMaintenanceItem = ({ item }: { item: MaintenanceEntry }) => {
+    const remainingTrip = item.tripLimit - item.currentTrip;
+    const progress = getProgress(item);
+    const status =
+      progress < 65
+        ? { label: "Good", color: colors.success }
+        : progress < 85
+          ? { label: "Monitor", color: colors.warning }
+          : { label: "Action Needed", color: colors.danger };
 
     return (
       <View style={styles.maintenanceRow}>
         <Text style={styles.maintenanceName}>{item.name}:</Text>
+        {/* Status Indicator */}
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 5,
+            margin: 10,
+          }}
+        >
+          <Text style={{ color: status.color }}>{status.label}</Text>
+
+          <Ionicons name="ellipse" size={10} color={status.color} />
+        </View>
         <View>
           <Text style={styles.maintenanceMeter}>
             {remainingTrip < 0 ? (
@@ -49,8 +89,15 @@ export default function MaintenanceTracker({
             <View
               style={[
                 styles.progressBarFill,
-                { width: `${progress}%` },
-                progress > 90 && styles.progressBarFillOverdue,
+                {
+                  width: `${progress}%`,
+                  backgroundColor:
+                    progress < 65
+                      ? colors.success
+                      : progress < 85
+                        ? colors.warning
+                        : colors.danger,
+                },
               ]}
             />
           </View>
@@ -63,6 +110,7 @@ export default function MaintenanceTracker({
     <>
       <View
         style={{
+          flex: 1,
           gap: 10,
         }}
       >
@@ -72,7 +120,8 @@ export default function MaintenanceTracker({
           onPress={openModal}
         />
         <FlatList
-          data={vehicle?.maintenance}
+          style={{ flex: 1 }}
+          data={sortedMaintenance}
           keyExtractor={(item) => item.id}
           renderItem={renderMaintenanceItem}
           contentContainerStyle={{ paddingBottom: 12 }}
@@ -96,7 +145,7 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     maintenanceRow: {
       position: "relative",
-      gap: 10,
+      gap: 5,
       backgroundColor: colors.card,
       padding: 12,
       borderRadius: 10,

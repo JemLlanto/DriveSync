@@ -9,8 +9,8 @@ import ComboBox from "./ComboBox.modal";
 
 export interface maintenanceFormDataProps {
   name: string;
-  currentTrip: string;
-  tripLimit?: string;
+  currentTrip?: string;
+  tripLimit: string;
 }
 
 interface UpdateModalProps {
@@ -41,7 +41,7 @@ export default function MaintenanceModal({
   const styles = useMemo(() => createStyles(), []);
   const [formData, setFormData] = useState<maintenanceFormDataProps>({
     name: "",
-    currentTrip: "",
+    tripLimit: "",
   });
 
   const handleAddMaintenance = async () => {
@@ -49,6 +49,10 @@ export default function MaintenanceModal({
       const response = await addMaintenanceService(vehicleId, formData);
       if (response.success) {
         setModalVisible(false);
+        setFormData({
+          name: "",
+          tripLimit: "",
+        });
         setVehicle((prev) => ({
           ...prev,
           maintenance: [

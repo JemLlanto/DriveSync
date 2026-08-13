@@ -95,8 +95,8 @@ export function useVehicles() {
 
   const persist = useCallback(async (next: Vehicle[]) => {
     try {
-      console.log("Persisting vehicles:", next);
       setVehicles(next);
+      console.log("Stored vehicles:", next);
       await saveVehicles(next);
       return { success: true };
     } catch (err) {
@@ -111,6 +111,7 @@ export function useVehicles() {
       const isDuplicate = vehicles.some(
         (v) => v.name.trim().toLowerCase() === trimmedName.toLowerCase(),
       );
+      // console.log("isDuplicate: ", isDuplicate);
 
       if (isDuplicate) {
         Alert.alert(
@@ -238,6 +239,7 @@ export function useVehicles() {
           : v,
       );
       await persist(next);
+      return { success: true };
     },
     [vehicles, persist],
   );

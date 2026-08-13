@@ -18,7 +18,7 @@ export type FullTankMethodEntry = {
 export type MaintenanceEntry = {
   id: string;
   name: string;
-  currentTrip: number;
+  currentTrip?: number;
   tripLimit: number;
 };
 
@@ -41,6 +41,7 @@ export const emptyVehicle = {
   odo: 0,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
+  maintenance: [{ id: makeId(), name: "", tripLimit: 0 }],
   history: [{ id: makeId(), odo: 0, date: new Date().toISOString() }],
 };
 
@@ -90,13 +91,17 @@ export function useVehicles() {
   };
 
   useEffect(() => {
+    console.log("Vehicles Updated: ", vehicles);
+  }, [vehicles]);
+
+  useEffect(() => {
     fetchVehicles();
   }, []);
 
   const persist = useCallback(async (next: Vehicle[]) => {
     try {
       setVehicles(next);
-      console.log("Stored vehicles:", next);
+      // console.log("Stored vehicles:", next);
       await saveVehicles(next);
       return { success: true };
     } catch (err) {
@@ -107,10 +112,11 @@ export function useVehicles() {
   const addVehicle = useCallback(
     async (name: string, odo: number) => {
       const trimmedName = name.trim() || "Unnamed Vehicle";
+      const vehicles = (await getVehicles()).vehicles;
 
-      const isDuplicate = vehicles.some(
-        (v) => v.name.trim().toLowerCase() === trimmedName.toLowerCase(),
-      );
+      const isDuplicate = vehicles.some((v) => {
+        return v.name.trim().toLowerCase() === trimmedName.toLowerCase();
+      });
       // console.log("isDuplicate: ", isDuplicate);
 
       if (isDuplicate) {
@@ -146,7 +152,7 @@ export function useVehicles() {
           odo: newOdo,
           maintenance: v.maintenance?.map((m) => ({
             ...m,
-            currentTrip: m.currentTrip + addedOdo,
+            currentTrip: m.currentTrip ?? 0 + addedOdo,
           })),
           history: [
             {
@@ -191,7 +197,7 @@ export function useVehicles() {
           gasConsumption: consumption,
           maintenance: v.maintenance?.map((m) => ({
             ...m,
-            currentTrip: m.currentTrip + addedOdo,
+            currentTrip: m.currentTrip ?? 0 + addedOdo,
           })),
           history: [
             {
@@ -246,7 +252,12 @@ export function useVehicles() {
 
   const removeVehicle = useCallback(
     async (vehicleId: string) => {
+      console.log(
+        "\n\nRemove vehicle: ",
+        vehicles.filter((v) => v.id !== vehicleId),
+      );
       await persist(vehicles.filter((v) => v.id !== vehicleId));
+      return { success: true };
     },
     [vehicles, persist],
   );

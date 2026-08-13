@@ -25,13 +25,6 @@ export default function IndexScreen() {
   const [name, setName] = useState("");
   const [odo, setOdo] = useState("");
 
-  // Fetch vehicles on page mount
-  useFocusEffect(
-    useCallback(() => {
-      fetchVehicles();
-    }, [getVehicles]),
-  );
-
   const closeModal = () => {
     setName("");
     setOdo("");
@@ -44,6 +37,13 @@ export default function IndexScreen() {
       setUserVehicles(response.vehicles);
     }
   };
+
+  // Fetch vehicles on page mount
+  useFocusEffect(
+    useCallback(() => {
+      fetchVehicles();
+    }, [getVehicles]),
+  );
 
   const handleAddVehicle = async () => {
     const trimmedOdo = odo.trim();
@@ -59,6 +59,7 @@ export default function IndexScreen() {
 
     const response = await addVehicle(name, odoNumber);
     if (response.success) {
+      // Fetch updated vehicles on success
       fetchVehicles();
       closeModal();
     }

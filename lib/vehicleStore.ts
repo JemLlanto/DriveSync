@@ -31,7 +31,7 @@ export type Vehicle = {
   lastFullTankOdo?: number; // optional last full tank odometer reading
   createdAt: string;
   updatedAt: string;
-  maintenance?: MaintenanceEntry[];
+  maintenance: MaintenanceEntry[];
   history: OdoEntry[];
 };
 
@@ -90,9 +90,9 @@ export function useVehicles() {
     }
   };
 
-  useEffect(() => {
-    console.log("Vehicles Updated: ", vehicles);
-  }, [vehicles]);
+  // useEffect(() => {
+  //   console.log("Vehicles Updated: ", vehicles);
+  // }, [vehicles]);
 
   useEffect(() => {
     fetchVehicles();
@@ -132,6 +132,9 @@ export function useVehicles() {
         odo,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        maintenance: [
+          { id: makeId(), name: "Change Oil", tripLimit: 1500, currentTrip: 0 },
+        ],
         history: [{ id: makeId(), odo, date: new Date().toISOString() }],
       };
       await persist([newVehicle, ...vehicles]);
@@ -148,13 +151,13 @@ export function useVehicles() {
         if (v.id !== vehicleId) return v;
 
         const addedOdo = newOdo - v.odo;
-        console.log("addedOdo: ", addedOdo);
+        // console.log("addedOdo: ", addedOdo);
 
         const updated: Partial<Vehicle> = {
           updatedAt: new Date().toISOString(),
           tripOdo: (v.tripOdo || 0) + addedOdo,
           odo: newOdo,
-          maintenance: v.maintenance?.map((m) => ({
+          maintenance: v.maintenance.map((m) => ({
             ...m,
             currentTrip: (m.currentTrip ?? 0) + addedOdo,
           })),
@@ -170,14 +173,14 @@ export function useVehicles() {
         };
 
         newData = updated;
-        console.log("newData: ", newData);
+        console.log("\n\nnewData: ", newData);
 
         return { ...v, ...updated };
       });
 
       if (!newData) {
         console.warn(`updateOdo: no vehicle found with id ${vehicleId}`);
-        return { success: false, data: null };
+        return { success: false, data: emptyVehicle };
       }
 
       await persist(next);
@@ -192,19 +195,20 @@ export function useVehicles() {
       let consumption =
         (formData.latestOdo - formData.lastFullTankOdo) / formData.littersAdded;
 
-      let newData = {};
+      let newData: Partial<Vehicle> | null = null;
 
       const next = vehicles.map((v) => {
+        if (v.id !== vehicleId) return v;
         const addedOdo = formData.latestOdo - v.odo;
-        console.log("addedOdo:", addedOdo);
+        // console.log("addedOdo:", addedOdo);
 
-        newData = {
+        const updated: Partial<Vehicle> = {
           updatedAt: new Date().toISOString(),
           tripOdo: (v.tripOdo || 0) + addedOdo,
           lastFullTankOdo: formData.latestOdo,
           odo: formData.latestOdo,
           gasConsumption: consumption,
-          maintenance: v.maintenance?.map((m) => ({
+          maintenance: v.maintenance.map((m) => ({
             ...m,
             currentTrip: m.currentTrip ?? 0 + addedOdo,
           })),
@@ -219,13 +223,17 @@ export function useVehicles() {
           ],
         };
 
-        return v.id === vehicleId
-          ? {
-              ...v,
-              ...newData,
-            }
-          : v;
+        newData = updated;
+        console.log("\n\nnewData Gas Consump: ", newData);
+
+        return { ...v, ...updated };
       });
+
+      if (!newData) {
+        console.warn(`updateOdo: no vehicle found with id ${vehicleId}`);
+        return { success: false, data: emptyVehicle };
+      }
+
       await persist(next);
       return { success: true, data: newData };
     },

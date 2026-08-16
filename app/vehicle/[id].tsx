@@ -39,7 +39,7 @@ export default function VehicleDetailScreen() {
   const [FullTankMethod, setFullTankMethod] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log("[id] usetate vehicle: ", vehicle);
+    console.log("\n\n[id] usetate vehicle: ", vehicle);
   }, [vehicle]);
 
   useFocusEffect(

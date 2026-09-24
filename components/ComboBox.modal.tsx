@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { maintenanceFormDataProps } from "./Maintenance.modal";
+import { maintenanceFormDataProps } from "../app/vehicle/maintenance/AddMaintenance.modal";
 
 type ComboBoxProps = {
   options: string[];

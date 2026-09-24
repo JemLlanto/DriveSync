@@ -5,7 +5,7 @@ import { formatNumber } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import MaintenanceModal from "./Maintenance.modal";
+import MaintenanceModal from "./AddMaintenance.modal";
 
 interface MaintenanceProps {
   vehicle: Vehicle;
@@ -27,7 +27,7 @@ export default function MaintenanceTracker({
   // Helper — same math as in renderMaintenanceItem, extracted so both places stay in sync
   const getProgress = (item: MaintenanceEntry) => {
     const dueOdo = item.tripLimit;
-    const remainingTrip = dueOdo - item.currentTrip;
+    const remainingTrip = dueOdo - (item.currentTrip || 0);
     const rawProgress = remainingTrip / dueOdo;
     return 100 - Math.min(Math.max(rawProgress, 0), 1) * 100;
   };
@@ -45,7 +45,7 @@ export default function MaintenanceTracker({
   };
 
   const renderMaintenanceItem = ({ item }: { item: MaintenanceEntry }) => {
-    const remainingTrip = item.tripLimit - item.currentTrip;
+    const remainingTrip = item.tripLimit - (item.currentTrip || 0);
     const progress = getProgress(item);
     const status =
       progress < 65

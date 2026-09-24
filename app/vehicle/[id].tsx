@@ -11,7 +11,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ThemeColors, useTheme } from "../../lib/theme";
 import { emptyVehicle, useVehicles, Vehicle } from "../../lib/vehicleStore";
 import DataCards from "./DataCards";
-import MaintenanceTracker from "./MaintenanceTracker";
+import MaintenanceTracker from "./maintenance/MaintenanceTracker";
 import UpdateModal from "./Update.modal";
 
 export default function VehicleDetailScreen() {

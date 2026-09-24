@@ -5,7 +5,7 @@ import { useVehicles, Vehicle } from "@/lib/vehicleStore";
 import { formatNumber, sanitizeNumberInput } from "@/utils/formatting";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import ComboBox from "./ComboBox.modal";
+import ComboBox from "../../../components/ComboBox.modal";
 
 export interface maintenanceFormDataProps {
   name: string;
@@ -31,7 +31,7 @@ const COMMON_MAINTENANCE_TYPES = [
   "Battery Check",
 ];
 
-export default function MaintenanceModal({
+export default function AddMaintenance({
   vehicleId,
   visible,
   setVehicle,

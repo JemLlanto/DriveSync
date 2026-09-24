@@ -6,7 +6,7 @@ import {
   useFocusEffect,
   useLocalSearchParams,
 } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ThemeColors, useTheme } from "../../lib/theme";
 import { emptyVehicle, useVehicles, Vehicle } from "../../lib/vehicleStore";
@@ -38,9 +38,9 @@ export default function VehicleDetailScreen() {
   });
   const [FullTankMethod, setFullTankMethod] = useState<boolean>(false);
 
-  useEffect(() => {
-    console.log("\n\n[id] usetate vehicle: ", vehicle);
-  }, [vehicle]);
+  // useEffect(() => {
+  //   console.log("\n\n[id] usetate vehicle: ", vehicle);
+  // }, [vehicle]);
 
   useFocusEffect(
     useCallback(() => {

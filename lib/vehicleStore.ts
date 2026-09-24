@@ -210,7 +210,7 @@ export function useVehicles() {
           gasConsumption: consumption,
           maintenance: v.maintenance.map((m) => ({
             ...m,
-            currentTrip: m.currentTrip ?? 0 + addedOdo,
+            currentTrip: (m.currentTrip ?? 0) + addedOdo,
           })),
           history: [
             {
@@ -224,7 +224,10 @@ export function useVehicles() {
         };
 
         newData = updated;
-        console.log("\n\nnewData Gas Consump: ", newData);
+        console.log(
+          "\n\nnewData Gas Consump: ",
+          JSON.stringify(newData, null, 2),
+        );
 
         return { ...v, ...updated };
       });

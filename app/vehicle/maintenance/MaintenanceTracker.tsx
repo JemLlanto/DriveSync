@@ -1,11 +1,13 @@
 import Button from "@/components/Button";
+import MiniButton from "@/components/MiniButton";
 import { ThemeColors, useTheme } from "@/lib/theme";
 import { MaintenanceEntry, Vehicle } from "@/lib/vehicleStore";
 import { formatNumber } from "@/utils/formatting";
 import { Ionicons } from "@expo/vector-icons";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import MaintenanceModal from "./AddMaintenance.modal";
+import AddMaintenance from "./AddMaintenance.modal";
+import ResetMaintenance from "./ResetMaintenance.modal";
 
 interface MaintenanceProps {
   vehicle: Vehicle;
@@ -19,6 +21,13 @@ export default function MaintenanceTracker({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [addModal, setAddModal] = useState<boolean>(false);
+  const [resetModal, setResetModal] = useState<boolean>(false);
+  const [toBeReset, setToBeReset] = useState<MaintenanceEntry>({
+    id: "",
+    name: "",
+    currentTrip: 0,
+    tripLimit: 0,
+  });
 
   const openModal = () => {
     setAddModal(true);
@@ -40,10 +49,6 @@ export default function MaintenanceTracker({
     );
   }, [vehicle?.maintenance]);
 
-  const renderMaintenanceStatus = (progress: number) => {
-    return <View></View>;
-  };
-
   const renderMaintenanceItem = ({ item }: { item: MaintenanceEntry }) => {
     const remainingTrip = item.tripLimit - (item.currentTrip || 0);
     const progress = getProgress(item);
@@ -51,12 +56,29 @@ export default function MaintenanceTracker({
       progress < 65
         ? { label: "Good", color: colors.success }
         : progress < 85
-          ? { label: "Monitor", color: colors.warning }
+          ? { label: "Warning", color: colors.warning }
           : { label: "Action Needed", color: colors.danger };
 
     return (
       <View style={styles.maintenanceRow}>
-        <Text style={styles.maintenanceName}>{item.name}:</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            // justifyContent: "space-between",
+          }}
+        >
+          <Text style={styles.maintenanceName}>{item.name}: </Text>
+          <MiniButton
+            variant="danger"
+            icon={"refresh-outline"}
+            onPress={() => {
+              setResetModal(true);
+              setToBeReset(item);
+            }}
+          />
+        </View>
+
         {/* Status Indicator */}
         <View
           style={{
@@ -74,6 +96,7 @@ export default function MaintenanceTracker({
           <Ionicons name="ellipse" size={10} color={status.color} />
         </View>
         <View>
+          {/* Number Indicator */}
           <Text style={styles.maintenanceMeter}>
             {remainingTrip < 0 ? (
               <>Maintenance Overdue: {formatNumber(remainingTrip * -1)} km</>
@@ -84,7 +107,7 @@ export default function MaintenanceTracker({
             )}
           </Text>
 
-          {/* Progress Bar */}
+          {/* Progress Bar  */}
           <View style={styles.progressBarTrack}>
             <View
               style={[
@@ -102,7 +125,6 @@ export default function MaintenanceTracker({
             />
           </View>
         </View>
-        {/* <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text> */}
       </View>
     );
   };
@@ -130,8 +152,14 @@ export default function MaintenanceTracker({
           }
         />
       </View>
-
-      <MaintenanceModal
+      <ResetMaintenance
+        vehicleId={vehicle.id}
+        item={toBeReset}
+        setVehicle={setVehicle}
+        visible={resetModal}
+        setModalVisible={setResetModal}
+      />
+      <AddMaintenance
         vehicleId={vehicle.id}
         setVehicle={setVehicle}
         visible={addModal}
@@ -153,7 +181,11 @@ const createStyles = (colors: ThemeColors) =>
       borderWidth: 1,
       borderColor: colors.cardBorder,
     },
-    maintenanceName: { color: colors.accent, fontWeight: "900", fontSize: 16 },
+    maintenanceName: {
+      color: colors.accent,
+      fontWeight: "900",
+      fontSize: 16,
+    },
     maintenanceMeter: { color: colors.text, fontWeight: "400", flex: 1 },
     historyDate: { color: colors.textFaint, fontSize: 12 },
     emptyText: {

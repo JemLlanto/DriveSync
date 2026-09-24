@@ -315,6 +315,60 @@ export function useVehicles() {
     [vehicles, persist],
   );
 
+  const resetMaintenanceService = useCallback(
+    async (vehicleId: string, data: any) => {
+      const formData: MaintenanceEntry = data as MaintenanceEntry;
+
+      const vehicle = vehicles.find((v) => v.id === vehicleId);
+
+      if (!vehicle) {
+        console.log("Reset Maintenance Failed.");
+        return {
+          success: false,
+          toBeReset: formData.id,
+          newHistory: null,
+        };
+      }
+
+      const maintenance = vehicle.maintenance?.find(
+        (m) => m.id === formData.id,
+      );
+
+      const newHistory = {
+        id: makeId(),
+        odo: vehicle.odo,
+        action: `Reset ${maintenance?.name ?? "Maintenance"}`,
+        date: new Date().toISOString(),
+      };
+
+      const next = vehicles.map((v) =>
+        v.id === vehicleId
+          ? {
+              ...v,
+              maintenance: (v.maintenance || []).map((maintenance) =>
+                maintenance.id === formData.id
+                  ? {
+                      ...maintenance,
+                      currentTrip: 0,
+                    }
+                  : maintenance,
+              ),
+              history: [newHistory, ...v.history],
+            }
+          : v,
+      );
+
+      const response = await persist(next);
+
+      return {
+        success: response?.success,
+        toBeReset: formData.id,
+        newHistory,
+      };
+    },
+    [vehicles, persist],
+  );
+
   const getVehicle = useCallback(
     (vehicleId: string) => vehicles.find((v) => v.id === vehicleId),
     [vehicles],
@@ -331,5 +385,6 @@ export function useVehicles() {
     resetTripMeterOdo,
     getVehicle,
     addMaintenanceService,
+    resetMaintenanceService,
   };
 }
